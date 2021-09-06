@@ -28,7 +28,6 @@ func NewRepository(table string, primaryKey string, tableAlias string) BaseRepos
 }
 
 func (repo baseRepository) findAll() (*sql.Rows, error) {
-	fmt.Println("Query: " + repo.findAllQuery())
 	return repo.db.Query(repo.findAllQuery())
 }
 
