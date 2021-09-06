@@ -15,9 +15,9 @@ func NewRouter() *gin.Engine {
 	router.Use(gin.Logger())
 	router.Use(cors.Default())
 
-	v1 := router.Group("api")
+	api := router.Group("api")
 	{
-		users := v1.Group("users")
+		users := api.Group("users")
 		userController := controller.NewUserController()
 		{
 			users.GET("/", userController.GetAllUser)
