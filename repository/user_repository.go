@@ -2,8 +2,8 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"ibf-benevolence/entity"
+	"ibf-benevolence/util/logger"
 )
 
 type userRepository struct {
@@ -15,16 +15,17 @@ type UserRepository interface {
 }
 
 func NewUserRepository() UserRepository {
-	fmt.Println("Initializing user repository")
+	logger.Info("Initializing user repository..")
 	br := NewRepository("user", "user_id", "usr")
 	ur := userRepository{br}
 	return ur
 }
 
 func (repo userRepository) FindAllUser() ([]entity.User, error) {
-	fmt.Println("Find all user in database")
+	logger.Info("Find all user in database")
 	rows, err := repo.findAll()
 	if err != nil {
+		logger.Error(err.Error())
 		return nil, errors.New("failed to find from database")
 	}
 	users := []entity.User{}
@@ -32,8 +33,8 @@ func (repo userRepository) FindAllUser() ([]entity.User, error) {
 		var r entity.User
 		err = rows.Scan(&r.UserId, &r.Name, &r.Email, &r.PhoneNumberCode, &r.PhoneNumber,
 			&r.PhotoUrl, &r.Gender, &r.AlgoAddress, &r.Status, &r.CreatedAt, &r.UpdatedAt)
-		// fmt.Printf("%+v\n", r)
 		if err != nil {
+			logger.Error(err.Error())
 			return nil, errors.New("failed to scan data from rows")
 		}
 		users = append(users, r)

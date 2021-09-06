@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"ibf-benevolence/config"
+	"ibf-benevolence/util/logger"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -17,9 +18,10 @@ func DBConnection() (db *sql.DB) {
 	dbPort := env.DBPort
 	dbName := env.DBName
 	url := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
-	fmt.Println("trying to connect DB : " + url)
+	logger.Info("trying to connect DB : " + url)
 	db, err := sql.Open(dbDriver, url)
 	if err != nil {
+		logger.Error(err.Error())
 		panic(err.Error())
 	}
 	return db

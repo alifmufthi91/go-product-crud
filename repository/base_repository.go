@@ -18,7 +18,6 @@ type BaseRepository interface {
 }
 
 func NewRepository(table string, primaryKey string, tableAlias string) BaseRepository {
-	fmt.Println("Initializing base repository")
 	dbconn := database.DBConnection()
 	return baseRepository{
 		db:         dbconn,

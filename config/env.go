@@ -1,7 +1,7 @@
 package config
 
 import (
-	"fmt"
+	"ibf-benevolence/util/logger"
 	"log"
 	"os"
 	"sync"
@@ -13,7 +13,7 @@ var env Env
 var once sync.Once
 
 type Env struct {
-	Port int `envconfig:"PORT"`
+	Port string `envconfig:"PORT"`
 
 	DBHost     string `envconfig:"DB_HOST"`
 	DBUser     string `envconfig:"DB_USERNAME"`
@@ -28,12 +28,13 @@ func GetEnv() *Env {
 		if err != nil {
 			log.Fatal("Error loading .env file")
 		}
+		env.Port = os.Getenv("PORT")
 		env.DBHost = os.Getenv("DB_HOST")
 		env.DBUser = os.Getenv("DB_USERNAME")
 		env.DBPassword = os.Getenv("DB_PASSWORD")
 		env.DBName = os.Getenv("DB_NAME")
 		env.DBPort = os.Getenv("DB_PORT")
-		fmt.Print("Environment config set")
+		logger.Info("Environment config set")
 	})
 	return &env
 }
