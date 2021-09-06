@@ -10,7 +10,7 @@ type userRepository struct {
 }
 
 type UserRepository interface {
-	FindAllUser() []entity.User
+	FindAllUser() ([]entity.User, error)
 }
 
 func NewUserRepository() UserRepository {
@@ -20,11 +20,11 @@ func NewUserRepository() UserRepository {
 	return ur
 }
 
-func (repo userRepository) FindAllUser() []entity.User {
+func (repo userRepository) FindAllUser() ([]entity.User, error) {
 	fmt.Println("Find all user in database")
 	rows, err := repo.base.findAll()
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 	users := []entity.User{}
 	for rows.Next() {
@@ -32,10 +32,10 @@ func (repo userRepository) FindAllUser() []entity.User {
 		err = rows.Scan(&r.UserId, &r.Name, &r.Email, &r.PhoneNumberCode, &r.PhoneNumber,
 			&r.PhotoUrl, &r.Gender, &r.AlgoAddress, &r.Status, &r.CreatedAt, &r.UpdatedAt)
 		fmt.Printf("%+v\n", r)
-		if err != nil {
-			fmt.Printf("Error: %s\n", err.Error())
-		}
+		// if err != nil {
+		// 	return nil, err
+		// }
 		users = append(users, r)
 	}
-	return users
+	return users, nil
 }

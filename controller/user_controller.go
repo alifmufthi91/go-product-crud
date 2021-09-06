@@ -26,6 +26,9 @@ func NewUserController() UserController {
 
 func (uc userController) GetAllUser(c *gin.Context) {
 	fmt.Println("Get all user requested")
-	users := uc.userService.GetAll()
+	users, err := uc.userService.GetAll()
+	if err != nil {
+		response.Fail(c, err.Error())
+	}
 	response.Success(c, users)
 }

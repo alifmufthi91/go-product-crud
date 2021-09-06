@@ -7,7 +7,7 @@ import (
 )
 
 type UserService interface {
-	GetAll() []entity.User
+	GetAll() ([]entity.User, error)
 }
 
 type userService struct {
@@ -22,7 +22,11 @@ func NewUserService() UserService {
 	}
 }
 
-func (us userService) GetAll() []entity.User {
+func (us userService) GetAll() ([]entity.User, error) {
 	fmt.Println("Getting all user from repository")
-	return us.userRepository.FindAllUser()
+	users, err := us.userRepository.FindAllUser()
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }

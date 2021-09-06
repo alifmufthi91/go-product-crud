@@ -6,10 +6,10 @@ type User struct {
 	Email           string `json:"email"`
 	PhoneNumberCode string `json:"phone_number_code"`
 	PhoneNumber     string `json:"phone_number"`
-	PhotoUrl        string `json:"photo_url"`
+	PhotoUrl        string `json:"photo_url,omitempty"`
 	Gender          string `json:"gender"`
 	AlgoAddress     string `json:"algo_address"`
 	Status          string `json:"status"`
 	CreatedAt       int64  `json:"created_at"`
-	UpdatedAt       int64  `json:"updated_at"`
+	UpdatedAt       int64  `json:"updated_at,omitempty"`
 }
