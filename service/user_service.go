@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"ibf-benevolence/entity"
 	"ibf-benevolence/repository"
@@ -26,7 +27,7 @@ func (us userService) GetAll() ([]entity.User, error) {
 	fmt.Println("Getting all user from repository")
 	users, err := us.userRepository.FindAllUser()
 	if err != nil {
-		return nil, err
+		return nil, errors.New("failed getting all user")
 	}
 	return users, nil
 }

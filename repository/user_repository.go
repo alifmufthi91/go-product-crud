@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"ibf-benevolence/entity"
 )
@@ -24,7 +25,7 @@ func (repo userRepository) FindAllUser() ([]entity.User, error) {
 	fmt.Println("Find all user in database")
 	rows, err := repo.base.findAll()
 	if err != nil {
-		return nil, err
+		return nil, errors.New("failed to find from database")
 	}
 	users := []entity.User{}
 	for rows.Next() {
@@ -33,7 +34,7 @@ func (repo userRepository) FindAllUser() ([]entity.User, error) {
 			&r.PhotoUrl, &r.Gender, &r.AlgoAddress, &r.Status, &r.CreatedAt, &r.UpdatedAt)
 		// fmt.Printf("%+v\n", r)
 		if err != nil {
-			return nil, err
+			return nil, errors.New("failed to scan data from rows")
 		}
 		users = append(users, r)
 	}

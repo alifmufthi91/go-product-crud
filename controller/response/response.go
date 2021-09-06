@@ -18,7 +18,7 @@ func Success(c *gin.Context, data interface{}) {
 }
 
 func Fail(c *gin.Context, err string) {
-	respond(c, http.StatusBadRequest, response{Error: err})
+	respond(c, http.StatusAccepted, response{Message: "FAILED", Error: err})
 }
 
 func respond(c *gin.Context, code int, payload interface{}) {

@@ -29,6 +29,7 @@ func (uc userController) GetAllUser(c *gin.Context) {
 	users, err := uc.userService.GetAll()
 	if err != nil {
 		response.Fail(c, err.Error())
+	} else {
+		response.Success(c, users)
 	}
-	response.Success(c, users)
 }
