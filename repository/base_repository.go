@@ -1,20 +1,21 @@
 package repository
 
 import (
-	"database/sql"
 	"fmt"
 	"ibf-benevolence/database"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type baseRepository struct {
-	db         *sql.DB
+	db         *sqlx.DB
 	table      string
 	primaryKey string
 	tableAlias string
 }
 
 type BaseRepository interface {
-	findAll() (*sql.Rows, error)
+	findAll(dest interface{}) error
 }
 
 func NewRepository(table string, primaryKey string, tableAlias string) BaseRepository {
@@ -27,8 +28,8 @@ func NewRepository(table string, primaryKey string, tableAlias string) BaseRepos
 	}
 }
 
-func (repo baseRepository) findAll() (*sql.Rows, error) {
-	return repo.db.Query(repo.findAllQuery())
+func (repo baseRepository) findAll(dest interface{}) error {
+	return repo.db.Select(dest, repo.findAllQuery())
 }
 
 func (repo baseRepository) findQuery(key string, value string) string {
