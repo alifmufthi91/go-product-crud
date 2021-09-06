@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"ibf-benevolence/database"
+	"ibf-benevolence/util/logger"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -15,7 +16,7 @@ type baseRepository struct {
 }
 
 type BaseRepository interface {
-	findAll(dest interface{}) error
+	selectAll(dest interface{}) error
 }
 
 func NewRepository(table string, primaryKey string, tableAlias string) BaseRepository {
@@ -28,14 +29,15 @@ func NewRepository(table string, primaryKey string, tableAlias string) BaseRepos
 	}
 }
 
-func (repo baseRepository) findAll(dest interface{}) error {
-	return repo.db.Select(dest, repo.findAllQuery())
+func (repo baseRepository) selectAll(dest interface{}) error {
+	logger.Info("Querying: " + repo.selectAllQuery())
+	return repo.db.Select(dest, repo.selectAllQuery())
 }
 
-func (repo baseRepository) findQuery(key string, value string) string {
+func (repo baseRepository) selectQuery(key string, value string) string {
 	return fmt.Sprintf("SELECT * FROM %s WHERE '%s' = '%s'", repo.table, key, value)
 }
 
-func (repo baseRepository) findAllQuery() string {
+func (repo baseRepository) selectAllQuery() string {
 	return fmt.Sprintf("SELECT * FROM %s", repo.table)
 }

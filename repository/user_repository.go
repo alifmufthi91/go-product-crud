@@ -24,7 +24,7 @@ func NewUserRepository() UserRepository {
 func (repo userRepository) FindAllUser() ([]entity.User, error) {
 	logger.Info("Find all user in database")
 	users := []entity.User{}
-	err := repo.findAll(&users)
+	err := repo.selectAll(&users)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, errors.New("failed to find from database")
