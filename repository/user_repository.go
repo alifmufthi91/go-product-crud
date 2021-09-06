@@ -31,10 +31,10 @@ func (repo userRepository) FindAllUser() ([]entity.User, error) {
 		var r entity.User
 		err = rows.Scan(&r.UserId, &r.Name, &r.Email, &r.PhoneNumberCode, &r.PhoneNumber,
 			&r.PhotoUrl, &r.Gender, &r.AlgoAddress, &r.Status, &r.CreatedAt, &r.UpdatedAt)
-		fmt.Printf("%+v\n", r)
-		// if err != nil {
-		// 	return nil, err
-		// }
+		// fmt.Printf("%+v\n", r)
+		if err != nil {
+			return nil, err
+		}
 		users = append(users, r)
 	}
 	return users, nil
