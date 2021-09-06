@@ -7,7 +7,7 @@ import (
 )
 
 type userRepository struct {
-	base BaseRepository
+	BaseRepository
 }
 
 type UserRepository interface {
@@ -17,13 +17,13 @@ type UserRepository interface {
 func NewUserRepository() UserRepository {
 	fmt.Println("Initializing user repository")
 	br := NewRepository("user", "user_id", "usr")
-	ur := userRepository{base: br}
+	ur := userRepository{br}
 	return ur
 }
 
 func (repo userRepository) FindAllUser() ([]entity.User, error) {
 	fmt.Println("Find all user in database")
-	rows, err := repo.base.findAll()
+	rows, err := repo.findAll()
 	if err != nil {
 		return nil, errors.New("failed to find from database")
 	}
