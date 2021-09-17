@@ -49,7 +49,7 @@ func (us userService) Register(userInput model.UserRegisterInput) (*entity.User,
 	user.Email = userInput.Email
 	user.PhoneNumberCode = userInput.PhoneNumberCode
 	user.PhoneNumber = userInput.PhoneNumber
-	user.PhotoUrl = userInput.PhotoUrl
+	user.PhotoUrl = &userInput.PhotoUrl
 	user.Gender = userInput.Gender
 	user.Status = "INACTIVE"
 	user.CreatedAt = time.Now().UnixMilli()
