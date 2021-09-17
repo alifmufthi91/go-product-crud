@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/jinzhu/copier"
 )
 
 type UserService interface {
@@ -42,17 +43,8 @@ func (us userService) Register(userInput model.UserRegisterInput) (*entity.User,
 	if err != nil {
 		return nil, err
 	}
-	user := entity.User{}
-	user.UserId = id.String()
-	user.Name = userInput.Name
-	user.AlgoAddress = userInput.AlgoAddress
-	user.Email = userInput.Email
-	user.PhoneNumberCode = userInput.PhoneNumberCode
-	user.PhoneNumber = userInput.PhoneNumber
-	user.PhotoUrl = &userInput.PhotoUrl
-	user.Gender = userInput.Gender
-	user.Status = "INACTIVE"
-	user.CreatedAt = time.Now().UnixMilli()
+	user := entity.User{UserId: id.String(), Status: "INACTIVE", CreatedAt: time.Now().UnixMilli()}
+	copier.Copy(&user, &userInput)
 	err = us.userRepository.AddUser(user)
 	if err != nil {
 		return nil, err
