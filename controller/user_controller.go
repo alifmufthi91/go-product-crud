@@ -1,7 +1,10 @@
 package controller
 
 import (
+	"encoding/json"
+	"errors"
 	"ibf-benevolence/controller/response"
+	"ibf-benevolence/model"
 	"ibf-benevolence/service"
 	"ibf-benevolence/util/logger"
 
@@ -10,6 +13,7 @@ import (
 
 type UserController interface {
 	GetAllUser(*gin.Context)
+	AddUser(c *gin.Context)
 }
 
 type userController struct {
@@ -29,8 +33,25 @@ func (uc userController) GetAllUser(c *gin.Context) {
 	users, err := uc.userService.GetAll()
 	if err != nil {
 		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-	} else {
-		response.Success(c, users)
+		response.Fail(c, errors.New("something went wrong").Error())
+		return
 	}
+	response.Success(c, users)
+}
+
+func (uc userController) AddUser(c *gin.Context) {
+	logger.Info("Add user requested")
+	var input model.UserRegisterInput
+	err := json.NewDecoder(c.Request.Body).Decode(&input)
+	if err != nil {
+		response.Fail(c, err.Error())
+		return
+	}
+	user, err := uc.userService.Register(input)
+	if err != nil {
+		logger.Error(err.Error())
+		response.Fail(c, errors.New("something went wrong").Error())
+		return
+	}
+	response.Success(c, user)
 }

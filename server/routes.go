@@ -21,6 +21,7 @@ func NewRouter() *gin.Engine {
 		userController := controller.NewUserController()
 		{
 			users.GET("/", userController.GetAllUser)
+			users.POST("/", userController.AddUser)
 		}
 	}
 
