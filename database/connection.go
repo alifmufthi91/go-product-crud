@@ -6,19 +6,18 @@ import (
 	"ibf-benevolence/util/logger"
 	"sync"
 
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 var (
 	dbConnOnce sync.Once
-	conn       *sqlx.DB
+	conn       *gorm.DB
 )
 
-func DBConnection() (db *sqlx.DB) {
+func DBConnection() (db *gorm.DB) {
 	dbConnOnce.Do(func() {
 		var env = config.GetEnv()
-		dbDriver := "mysql"
 		dbHost := env.DBHost
 		dbUser := env.DBUser
 		dbPass := env.DBPassword
@@ -26,7 +25,7 @@ func DBConnection() (db *sqlx.DB) {
 		dbName := env.DBName
 		url := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
 		logger.Info("trying to connect DB : " + url)
-		db, err := sqlx.Open(dbDriver, url)
+		db, err := gorm.Open(mysql.Open(url))
 		if err != nil {
 			logger.Error(err.Error())
 			panic(err.Error())

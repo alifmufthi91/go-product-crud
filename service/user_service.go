@@ -40,7 +40,7 @@ func (us userService) GetAll() ([]entity.User, error) {
 
 func (us userService) GetById(userId string) (*entity.User, error) {
 	logger.Info("Getting user from repository")
-	user, err := us.userRepository.Find(userId)
+	user, err := us.userRepository.FindByUserId(userId)
 	if err != nil {
 		return nil, err
 	}
