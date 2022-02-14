@@ -2,11 +2,11 @@ package database
 
 import (
 	"fmt"
-	"ibf-benevolence/config"
-	"ibf-benevolence/util/logger"
+	"product-crud/config"
+	"product-crud/util/logger"
 	"sync"
 
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -23,9 +23,9 @@ func DBConnection() (db *gorm.DB) {
 		dbPass := env.DBPassword
 		dbPort := env.DBPort
 		dbName := env.DBName
-		url := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
-		logger.Info("trying to connect DB : " + url)
-		db, err := gorm.Open(mysql.Open(url))
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", dbHost, dbUser, dbPass, dbName, dbPort)
+		logger.Info("trying to connect DB : " + dsn)
+		db, err := gorm.Open(postgres.Open(dsn))
 		if err != nil {
 			logger.Error(err.Error())
 			panic(err.Error())

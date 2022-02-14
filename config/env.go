@@ -1,9 +1,9 @@
 package config
 
 import (
-	"ibf-benevolence/util/logger"
 	"log"
 	"os"
+	"product-crud/util/logger"
 	"sync"
 
 	"github.com/joho/godotenv"

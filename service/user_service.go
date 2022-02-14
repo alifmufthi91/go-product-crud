@@ -1,20 +1,19 @@
 package service
 
 import (
-	"ibf-benevolence/entity"
-	"ibf-benevolence/model"
-	"ibf-benevolence/repository"
-	"ibf-benevolence/util/logger"
-	"time"
-
-	"github.com/gofrs/uuid"
-	"github.com/jinzhu/copier"
+	"crypto/sha256"
+	"errors"
+	"product-crud/app"
+	"product-crud/models"
+	"product-crud/repository"
+	"product-crud/util/logger"
+	"product-crud/validation"
 )
 
 type UserService interface {
-	GetAll() ([]entity.User, error)
-	GetById(userId string) (*entity.User, error)
-	Register(userInput model.UserRegisterInput) (*entity.User, error)
+	// GetAll() ([]app.User, error)
+	// GetById(userId string) (*app.User, error)
+	Register(userInput validation.RegisterUser) (*app.User, error)
 }
 
 type userService struct {
@@ -29,35 +28,44 @@ func NewUserService() UserService {
 	}
 }
 
-func (us userService) GetAll() ([]entity.User, error) {
-	logger.Info("Getting all user from repository")
-	users, err := us.userRepository.FindAllUser()
-	if err != nil {
-		return nil, err
-	}
-	return users, nil
-}
+// func (us userService) GetAll() ([]app.User, error) {
+// 	logger.Info("Getting all user from repository")
+// 	users, err := us.userRepository.FindAllUser()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return users, nil
+// }
 
-func (us userService) GetById(userId string) (*entity.User, error) {
-	logger.Info("Getting user from repository")
-	user, err := us.userRepository.FindByUserId(userId)
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
-}
+// func (us userService) GetById(userId string) (*app.User, error) {
+// 	logger.Info("Getting user from repository")
+// 	user, err := us.userRepository.FindByUserId(userId)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return user, nil
+// }
 
-func (us userService) Register(userInput model.UserRegisterInput) (*entity.User, error) {
-	logger.Info("register new user to repository")
-	id, err := uuid.NewV1()
+func (us userService) Register(userInput validation.RegisterUser) (*app.User, error) {
+	logger.Info("registering new user")
+	existing, _ := us.userRepository.IsExistingEmail(userInput.Email)
+	if *existing {
+		return nil, errors.New("email is already exists")
+	}
+	bv := []byte(userInput.Password)
+	hasher := sha256.New()
+	hasher.Write(bv)
+
+	user := models.User{
+		FirstName: userInput.FirstName,
+		LastName:  userInput.LastName,
+		Email:     userInput.Email,
+		Password:  bv,
+	}
+	createdUser, err := us.userRepository.AddUser(user)
 	if err != nil {
 		return nil, err
 	}
-	user := entity.User{UserId: id.String(), Status: "INACTIVE", CreatedAt: time.Now().UnixMilli()}
-	copier.Copy(&user, &userInput)
-	err = us.userRepository.AddUser(user)
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
+	userData := createdUser.UserToUser()
+	return &userData, nil
 }

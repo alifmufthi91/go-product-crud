@@ -1,7 +1,7 @@
 package server
 
 import (
-	"ibf-benevolence/controller"
+	"product-crud/controller"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -20,9 +20,9 @@ func NewRouter() *gin.Engine {
 		users := api.Group("users")
 		userController := controller.NewUserController()
 		{
-			users.GET("/", userController.GetAllUser)
-			users.GET("/:id", userController.GetUserById)
-			users.POST("/", userController.AddUser)
+			// users.GET("/", userController.GetAllUser)
+			// users.GET("/:id", userController.GetUserById)
+			users.POST("/", userController.RegisterUser)
 		}
 	}
 

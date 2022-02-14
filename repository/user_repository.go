@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"ibf-benevolence/database"
-	"ibf-benevolence/entity"
-	"ibf-benevolence/util/logger"
 	"log"
+	"product-crud/database"
+	"product-crud/models"
+	"product-crud/util/logger"
 
 	"gorm.io/gorm"
 )
@@ -14,9 +14,11 @@ type userRepository struct {
 }
 
 type UserRepository interface {
-	FindAllUser() ([]entity.User, error)
-	FindByUserId(userId string) (*entity.User, error)
-	AddUser(user entity.User) error
+	GetAllUser() ([]models.User, error)
+	GetByUserId(userId string) (*models.User, error)
+	GetByEmail(email string) (*models.User, error)
+	AddUser(user models.User) (*models.User, error)
+	IsExistingEmail(email string) (*bool, error)
 }
 
 func NewUserRepository() UserRepository {
@@ -27,9 +29,9 @@ func NewUserRepository() UserRepository {
 	}
 }
 
-func (repo userRepository) FindAllUser() ([]entity.User, error) {
-	logger.Info("Find all user in database")
-	users := []entity.User{}
+func (repo userRepository) GetAllUser() ([]models.User, error) {
+	logger.Info("Get all user in database")
+	users := []models.User{}
 	result := repo.db.Find(&users)
 	if result.Error != nil {
 		return nil, result.Error
@@ -38,9 +40,9 @@ func (repo userRepository) FindAllUser() ([]entity.User, error) {
 	return users, nil
 }
 
-func (repo userRepository) FindByUserId(id string) (*entity.User, error) {
-	logger.Info("Find user in database")
-	user := entity.User{}
+func (repo userRepository) GetByUserId(id string) (*models.User, error) {
+	logger.Info("Get user in database by id")
+	user := models.User{}
 	result := repo.db.First(&user, "user_id = ?", id)
 	log.Printf("%v", user)
 	if result.Error != nil {
@@ -50,12 +52,34 @@ func (repo userRepository) FindByUserId(id string) (*entity.User, error) {
 	return &user, nil
 }
 
-func (repo userRepository) AddUser(user entity.User) error {
+func (repo userRepository) GetByEmail(email string) (*models.User, error) {
+	logger.Info("Get user in database by email")
+	user := models.User{}
+	result := repo.db.First(&user, "email = ?", email)
+	log.Printf("%v", user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &user, nil
+}
+
+func (repo userRepository) IsExistingEmail(email string) (*bool, error) {
+	logger.Info("Find existing user in database by email")
+	var exists bool
+	err := repo.db.Model(models.User{}).Select("count(*) > 0").Where("email = ?", email).Find(&exists).Error
+	if err != nil {
+		return nil, err
+	}
+	return &exists, nil
+}
+
+func (repo userRepository) AddUser(user models.User) (*models.User, error) {
 	logger.Info("Add new user to database")
 	result := repo.db.Create(&user)
 	if result.Error != nil {
-		return result.Error
+		return nil, result.Error
 	}
 
-	return nil
+	return &user, nil
 }
