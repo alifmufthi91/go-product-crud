@@ -9,10 +9,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var env Env
+var Env Environment
 var once sync.Once
 
-type Env struct {
+type Environment struct {
 	Port string `envconfig:"PORT"`
 
 	DBHost     string `envconfig:"DB_HOST"`
@@ -20,21 +20,24 @@ type Env struct {
 	DBPassword string `envconfig:"DB_PASSWORD"`
 	DBName     string `envconfig:"DB_NAME"`
 	DBPort     string `envconfig:"DB_PORT"`
+
+	JWTSECRET string `envconfig:"JWT_SECRET"`
 }
 
-func GetEnv() *Env {
+func GetEnv() *Environment {
 	once.Do(func() {
 		err := godotenv.Load()
 		if err != nil {
 			log.Fatal("Error loading .env file")
 		}
-		env.Port = os.Getenv("PORT")
-		env.DBHost = os.Getenv("DB_HOST")
-		env.DBUser = os.Getenv("DB_USERNAME")
-		env.DBPassword = os.Getenv("DB_PASSWORD")
-		env.DBName = os.Getenv("DB_NAME")
-		env.DBPort = os.Getenv("DB_PORT")
+		Env.Port = os.Getenv("PORT")
+		Env.DBHost = os.Getenv("DB_HOST")
+		Env.DBUser = os.Getenv("DB_USERNAME")
+		Env.DBPassword = os.Getenv("DB_PASSWORD")
+		Env.DBName = os.Getenv("DB_NAME")
+		Env.DBPort = os.Getenv("DB_PORT")
+		Env.JWTSECRET = os.Getenv("JWT_SECRET")
 		logger.Info("Environment config set")
 	})
-	return &env
+	return &Env
 }

@@ -17,7 +17,7 @@ var (
 
 func DBConnection() (db *gorm.DB) {
 	dbConnOnce.Do(func() {
-		var env = config.GetEnv()
+		var env = config.Env
 		dbHost := env.DBHost
 		dbUser := env.DBUser
 		dbPass := env.DBPassword

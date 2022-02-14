@@ -6,10 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"product-crud/app"
+	"product-crud/config"
 	"product-crud/models"
 	"product-crud/repository"
 	"product-crud/util/logger"
 	"product-crud/validation"
+	"time"
 
 	jwt "github.com/golang-jwt/jwt"
 )
@@ -98,11 +100,11 @@ func (us userService) Login(userInput validation.LoginUser) (*string, error) {
 		user.LastName,
 		fmt.Sprintf(`%s %s`, user.FirstName, user.LastName),
 		jwt.StandardClaims{
-			ExpiresAt: 15000,
+			ExpiresAt: time.Now().Add(time.Hour * 24 * 60).Unix(),
 			Issuer:    "test",
 		},
 	})
-	token, err := sign.SignedString([]byte("secret"))
+	token, err := sign.SignedString([]byte(config.Env.JWTSECRET))
 	if err != nil {
 		return nil, err
 	}
