@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"product-crud/config"
@@ -32,7 +33,8 @@ func Auth(c *gin.Context) {
 	})
 
 	if token != nil && err == nil {
-		logger.Info(`token verified, claims = %+v`, token.Claims)
+		claims, _ := json.Marshal(token.Claims)
+		logger.Info(`token verified, claims = %s`, string(claims))
 	} else {
 		result := gin.H{
 			"message": "not authorized",
