@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"log"
 	"product-crud/database"
 	"product-crud/models"
 	"product-crud/util/logger"
@@ -30,7 +29,6 @@ func NewUserRepository() UserRepository {
 }
 
 func (repo userRepository) GetAllUser() ([]models.User, error) {
-	logger.Info("Get all user in database")
 	users := []models.User{}
 	result := repo.db.Find(&users)
 	if result.Error != nil {
@@ -41,10 +39,8 @@ func (repo userRepository) GetAllUser() ([]models.User, error) {
 }
 
 func (repo userRepository) GetByUserId(id string) (*models.User, error) {
-	logger.Info("Get user in database by id")
 	user := models.User{}
-	result := repo.db.First(&user, "user_id = ?", id)
-	log.Printf("%v", user)
+	result := repo.db.First(&user, "id = ?", id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -53,10 +49,8 @@ func (repo userRepository) GetByUserId(id string) (*models.User, error) {
 }
 
 func (repo userRepository) GetByEmail(email string) (*models.User, error) {
-	logger.Info("Get user in database by email")
 	user := models.User{}
 	result := repo.db.First(&user, "email = ?", email)
-	log.Printf("%v", user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -65,7 +59,6 @@ func (repo userRepository) GetByEmail(email string) (*models.User, error) {
 }
 
 func (repo userRepository) IsExistingEmail(email string) (*bool, error) {
-	logger.Info("Find existing user in database by email")
 	var exists bool
 	err := repo.db.Model(models.User{}).Select("count(*) > 0").Where("email = ?", email).Find(&exists).Error
 	if err != nil {
@@ -75,7 +68,6 @@ func (repo userRepository) IsExistingEmail(email string) (*bool, error) {
 }
 
 func (repo userRepository) AddUser(user models.User) (*models.User, error) {
-	logger.Info("Add new user to database")
 	result := repo.db.Create(&user)
 	if result.Error != nil {
 		return nil, result.Error

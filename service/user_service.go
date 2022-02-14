@@ -1,19 +1,24 @@
 package service
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"errors"
+	"fmt"
 	"product-crud/app"
 	"product-crud/models"
 	"product-crud/repository"
 	"product-crud/util/logger"
 	"product-crud/validation"
+
+	jwt "github.com/golang-jwt/jwt"
 )
 
 type UserService interface {
 	// GetAll() ([]app.User, error)
-	// GetById(userId string) (*app.User, error)
+	GetById(userId string) (*app.User, error)
 	Register(userInput validation.RegisterUser) (*app.User, error)
+	Login(userInput validation.LoginUser) (*string, error)
 }
 
 type userService struct {
@@ -37,17 +42,18 @@ func NewUserService() UserService {
 // 	return users, nil
 // }
 
-// func (us userService) GetById(userId string) (*app.User, error) {
-// 	logger.Info("Getting user from repository")
-// 	user, err := us.userRepository.FindByUserId(userId)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return user, nil
-// }
+func (us userService) GetById(userId string) (*app.User, error) {
+	logger.Info("Getting user from repository")
+	user, err := us.userRepository.GetByUserId(userId)
+	if err != nil {
+		return nil, err
+	}
+	userData := user.UserToUser()
+	return &userData, nil
+}
 
 func (us userService) Register(userInput validation.RegisterUser) (*app.User, error) {
-	logger.Info("registering new user")
+	logger.Info(`Registering new user, user = %+v`, userInput)
 	existing, _ := us.userRepository.IsExistingEmail(userInput.Email)
 	if *existing {
 		return nil, errors.New("email is already exists")
@@ -68,4 +74,37 @@ func (us userService) Register(userInput validation.RegisterUser) (*app.User, er
 	}
 	userData := createdUser.UserToUser()
 	return &userData, nil
+}
+
+func (us userService) Login(userInput validation.LoginUser) (*string, error) {
+	logger.Info(`Login user by email, email = %s`, userInput.Email)
+	user, err := us.userRepository.GetByEmail(userInput.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	bv := []byte(userInput.Password)
+	hasher := sha256.New()
+	hasher.Write(bv)
+
+	if !bytes.Equal(user.Password, bv) {
+		return nil, errors.New(`user Password is wrong`)
+	}
+
+	sign := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), app.MyCustomClaims{
+		user.ID,
+		user.Email,
+		user.FirstName,
+		user.LastName,
+		fmt.Sprintf(`%s %s`, user.FirstName, user.LastName),
+		jwt.StandardClaims{
+			ExpiresAt: 15000,
+			Issuer:    "test",
+		},
+	})
+	token, err := sign.SignedString([]byte("secret"))
+	if err != nil {
+		return nil, err
+	}
+	return &token, nil
 }

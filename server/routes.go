@@ -2,6 +2,7 @@ package server
 
 import (
 	"product-crud/controller"
+	"product-crud/middlewares"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -21,8 +22,9 @@ func NewRouter() *gin.Engine {
 		userController := controller.NewUserController()
 		{
 			// users.GET("/", userController.GetAllUser)
-			// users.GET("/:id", userController.GetUserById)
+			users.GET("/:id", middlewares.Auth, userController.GetUserById)
 			users.POST("/", userController.RegisterUser)
+			users.POST("/login", userController.LoginUser)
 		}
 	}
 

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"product-crud/controller/response"
 	"product-crud/service"
 	"product-crud/util/logger"
@@ -13,8 +14,9 @@ import (
 
 type UserController interface {
 	// GetAllUser(*gin.Context)
-	// GetUserById(*gin.Context)
+	GetUserById(*gin.Context)
 	RegisterUser(c *gin.Context)
+	LoginUser(c *gin.Context)
 }
 
 type userController struct {
@@ -40,17 +42,17 @@ func NewUserController() UserController {
 // 	response.Success(c, users)
 // }
 
-// func (uc userController) GetUserById(c *gin.Context) {
-// 	logger.Info("Get user by id requested")
-// 	id := c.Param("id")
-// 	user, err := uc.userService.GetById(id)
-// 	if err != nil {
-// 		logger.Error(err.Error())
-// 		response.Fail(c, errors.New("something went wrong").Error())
-// 		return
-// 	}
-// 	response.Success(c, user)
-// }
+func (uc userController) GetUserById(c *gin.Context) {
+	logger.Info(`Get user by id, id = %s`, c.Param("id"))
+	id := c.Param("id")
+	user, err := uc.userService.GetById(id)
+	if err != nil {
+		logger.Error(err.Error())
+		response.Fail(c, errors.New("something went wrong").Error())
+		return
+	}
+	response.Success(c, user)
+}
 
 func (uc userController) RegisterUser(c *gin.Context) {
 	logger.Info(`Register new user`)
@@ -70,6 +72,31 @@ func (uc userController) RegisterUser(c *gin.Context) {
 		return
 	}
 	user, err := uc.userService.Register(input)
+	if err != nil {
+		logger.Error(err.Error())
+		response.Fail(c, err.Error())
+		return
+	}
+	response.Success(c, user)
+}
+
+func (uc userController) LoginUser(c *gin.Context) {
+	logger.Info(`Login User`)
+	var input validation.LoginUser
+	err := json.NewDecoder(c.Request.Body).Decode(&input)
+	if err != nil {
+		logger.Error(err.Error())
+		response.Fail(c, err.Error())
+		return
+	}
+	v := validator.New()
+	err = v.Struct(input)
+	if err != nil {
+		logger.Error(err.Error())
+		response.Fail(c, err.Error())
+		return
+	}
+	user, err := uc.userService.Login(input)
 	if err != nil {
 		logger.Error(err.Error())
 		response.Fail(c, err.Error())
