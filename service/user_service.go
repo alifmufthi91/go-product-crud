@@ -99,12 +99,12 @@ func (us userService) Login(userInput validation.LoginUser) (*string, error) {
 	}
 
 	sign := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), app.MyCustomClaims{
-		user.ID,
-		user.Email,
-		user.FirstName,
-		user.LastName,
-		fmt.Sprintf(`%s %s`, user.FirstName, user.LastName),
-		jwt.StandardClaims{
+		UserId:    user.ID,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		FullName:  fmt.Sprintf(`%s %s`, user.FirstName, user.LastName),
+		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 24 * 60).Unix(),
 			Issuer:    "test",
 		},
