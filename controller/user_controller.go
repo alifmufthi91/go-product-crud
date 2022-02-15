@@ -13,7 +13,7 @@ import (
 )
 
 type UserController interface {
-	// GetAllUser(*gin.Context)
+	GetAllUser(*gin.Context)
 	GetUserById(*gin.Context)
 	RegisterUser(c *gin.Context)
 	LoginUser(c *gin.Context)
@@ -31,16 +31,16 @@ func NewUserController() UserController {
 	}
 }
 
-// func (uc userController) GetAllUser(c *gin.Context) {
-// 	logger.Info("Get all user requested")
-// 	users, err := uc.userService.GetAll()
-// 	if err != nil {
-// 		logger.Error(err.Error())
-// 		response.Fail(c, errors.New("something went wrong").Error())
-// 		return
-// 	}
-// 	response.Success(c, users)
-// }
+func (uc userController) GetAllUser(c *gin.Context) {
+	logger.Info("Get all user requested")
+	users, err := uc.userService.GetAll()
+	if err != nil {
+		logger.Error(err.Error())
+		response.Fail(c, errors.New("something went wrong").Error())
+		return
+	}
+	response.Success(c, users)
+}
 
 func (uc userController) GetUserById(c *gin.Context) {
 	logger.Info(`Get user by id, id = %s`, c.Param("id"))

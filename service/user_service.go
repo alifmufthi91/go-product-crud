@@ -17,7 +17,7 @@ import (
 )
 
 type UserService interface {
-	// GetAll() ([]app.User, error)
+	GetAll() ([]app.User, error)
 	GetById(userId string) (*app.User, error)
 	Register(userInput validation.RegisterUser) (*app.User, error)
 	Login(userInput validation.LoginUser) (*string, error)
@@ -35,14 +35,19 @@ func NewUserService() UserService {
 	}
 }
 
-// func (us userService) GetAll() ([]app.User, error) {
-// 	logger.Info("Getting all user from repository")
-// 	users, err := us.userRepository.FindAllUser()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return users, nil
-// }
+func (us userService) GetAll() ([]app.User, error) {
+	logger.Info("Getting all user from repository")
+	users, err := us.userRepository.GetAllUser()
+	if err != nil {
+		return nil, err
+	}
+	var userDatas []app.User
+	for _, x := range users {
+		userDatas = append(userDatas, x.UserToUser())
+	}
+
+	return userDatas, nil
+}
 
 func (us userService) GetById(userId string) (*app.User, error) {
 	logger.Info("Getting user from repository")

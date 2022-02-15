@@ -21,7 +21,7 @@ func NewRouter() *gin.Engine {
 		users := api.Group("users")
 		userController := controller.NewUserController()
 		{
-			// users.GET("/", userController.GetAllUser)
+			users.GET("/", userController.GetAllUser)
 			users.GET("/:id", middlewares.Auth, userController.GetUserById)
 			users.POST("/", userController.RegisterUser)
 			users.POST("/login", userController.LoginUser)
