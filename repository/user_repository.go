@@ -14,7 +14,7 @@ type userRepository struct {
 
 type UserRepository interface {
 	GetAllUser() ([]models.User, error)
-	GetByUserId(userId string) (*models.User, error)
+	GetByUserId(userId uint) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
 	AddUser(user models.User) (*models.User, error)
 	IsExistingEmail(email string) (*bool, error)
@@ -38,7 +38,7 @@ func (repo userRepository) GetAllUser() ([]models.User, error) {
 	return users, nil
 }
 
-func (repo userRepository) GetByUserId(id string) (*models.User, error) {
+func (repo userRepository) GetByUserId(id uint) (*models.User, error) {
 	user := models.User{}
 	result := repo.db.First(&user, "id = ?", id)
 	if result.Error != nil {

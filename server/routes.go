@@ -26,6 +26,13 @@ func NewRouter() *gin.Engine {
 			users.POST("/", userController.RegisterUser)
 			users.POST("/login", userController.LoginUser)
 		}
+		products := api.Group("products")
+		productController := controller.NewProductController()
+		{
+			// products.GET("/", productController)
+			// users.GET("/:id", middlewares.Auth, userController.GetUserById)
+			products.POST("/", middlewares.Auth, productController.AddProduct)
+		}
 	}
 
 	return router

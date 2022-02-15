@@ -1,9 +1,9 @@
 package middlewares
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
+	"product-crud/app"
 	"product-crud/config"
 	"product-crud/util/logger"
 	"strings"
@@ -24,7 +24,7 @@ func Auth(c *gin.Context) {
 	}
 
 	tokenString := strings.Replace(authHeader, "Bearer ", "", -1)
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &app.MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if jwt.GetSigningMethod("HS256") != token.Method {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -33,8 +33,9 @@ func Auth(c *gin.Context) {
 	})
 
 	if token != nil && err == nil {
-		claims, _ := json.Marshal(token.Claims)
-		logger.Info(`token verified, claims = %s`, string(claims))
+		claims, _ := token.Claims.(*app.MyCustomClaims)
+		c.Set("user", claims)
+		logger.Info(`token verified, claims = %+v`, claims)
 	} else {
 		result := gin.H{
 			"message": "not authorized",

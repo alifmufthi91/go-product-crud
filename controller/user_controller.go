@@ -7,6 +7,7 @@ import (
 	"product-crud/service"
 	"product-crud/util/logger"
 	"product-crud/validation"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -44,8 +45,13 @@ func (uc userController) GetAllUser(c *gin.Context) {
 
 func (uc userController) GetUserById(c *gin.Context) {
 	logger.Info(`Get user by id, id = %s`, c.Param("id"))
-	id := c.Param("id")
-	user, err := uc.userService.GetById(id)
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.Error(err.Error())
+		response.Fail(c, errors.New("something went wrong").Error())
+		return
+	}
+	user, err := uc.userService.GetById(uint(id))
 	if err != nil {
 		logger.Error(err.Error())
 		response.Fail(c, errors.New("something went wrong").Error())

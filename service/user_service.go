@@ -18,7 +18,7 @@ import (
 
 type UserService interface {
 	GetAll() ([]app.User, error)
-	GetById(userId string) (*app.User, error)
+	GetById(userId uint) (*app.User, error)
 	Register(userInput validation.RegisterUser) (*app.User, error)
 	Login(userInput validation.LoginUser) (*string, error)
 }
@@ -49,7 +49,7 @@ func (us userService) GetAll() ([]app.User, error) {
 	return userDatas, nil
 }
 
-func (us userService) GetById(userId string) (*app.User, error) {
+func (us userService) GetById(userId uint) (*app.User, error) {
 	logger.Info("Getting user from repository")
 	user, err := us.userRepository.GetByUserId(userId)
 	if err != nil {

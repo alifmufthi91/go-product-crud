@@ -1,9 +1,9 @@
 package validation
 
 type RegisterUser struct {
-	FirstName string `json:"first_name" validate:"required,min=2,max=100"`
-	LastName  string `json:"last_name" validate:"required,min=2,max=10"`
-	Email     string `json:"email" validate:"required,email"`
+	FirstName string `json:"first_name" validate:"required,min=2,max=50"`
+	LastName  string `json:"last_name" validate:"required,min=2,max=50"`
+	Email     string `json:"email" validate:"required,email,max=100"`
 	Password  string `json:"password" validate:"required"`
 }
 
