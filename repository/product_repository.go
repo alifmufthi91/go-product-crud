@@ -10,7 +10,7 @@ import (
 )
 
 type productRepository struct {
-	db *gorm.DB
+	*gorm.DB
 }
 
 type ProductRepository interface {
@@ -23,13 +23,13 @@ func NewProductRepository() ProductRepository {
 	logger.Info("Initializing product repository..")
 	dbconn := database.DBConnection()
 	return productRepository{
-		db: dbconn,
+		DB: dbconn,
 	}
 }
 
 func (repo productRepository) GetAllProduct() ([]models.Product, error) {
 	products := []models.Product{}
-	result := repo.db.Preload(clause.Associations).Find(&products)
+	result := repo.Preload(clause.Associations).Find(&products)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -39,7 +39,7 @@ func (repo productRepository) GetAllProduct() ([]models.Product, error) {
 
 func (repo productRepository) GetByProductId(id uint) (*models.Product, error) {
 	product := models.Product{}
-	result := repo.db.Preload(clause.Associations).First(&product, "id = ?", id)
+	result := repo.Preload(clause.Associations).First(&product, "id = ?", id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -48,11 +48,11 @@ func (repo productRepository) GetByProductId(id uint) (*models.Product, error) {
 }
 
 func (repo productRepository) AddProduct(product models.Product) (*models.Product, error) {
-	result := repo.db.Create(&product)
+	result := repo.Create(&product)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	result = repo.db.Preload(clause.Associations).First(&product, "id = ?", product.ID)
+	result = repo.Preload(clause.Associations).First(&product, "id = ?", product.ID)
 	if result.Error != nil {
 		return nil, result.Error
 	}

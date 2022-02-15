@@ -10,7 +10,7 @@ import (
 )
 
 type userRepository struct {
-	db *gorm.DB
+	*gorm.DB
 }
 
 type UserRepository interface {
@@ -25,13 +25,13 @@ func NewUserRepository() UserRepository {
 	logger.Info("Initializing user repository..")
 	dbconn := database.DBConnection()
 	return userRepository{
-		db: dbconn,
+		DB: dbconn,
 	}
 }
 
 func (repo userRepository) GetAllUser() ([]models.User, error) {
 	users := []models.User{}
-	result := repo.db.Preload(clause.Associations).Find(&users)
+	result := repo.Preload(clause.Associations).Find(&users)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -41,7 +41,7 @@ func (repo userRepository) GetAllUser() ([]models.User, error) {
 
 func (repo userRepository) GetByUserId(id uint) (*models.User, error) {
 	user := models.User{}
-	result := repo.db.Preload(clause.Associations).First(&user, "id = ?", id)
+	result := repo.Preload(clause.Associations).First(&user, "id = ?", id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -51,7 +51,7 @@ func (repo userRepository) GetByUserId(id uint) (*models.User, error) {
 
 func (repo userRepository) GetByEmail(email string) (*models.User, error) {
 	user := models.User{}
-	result := repo.db.Preload(clause.Associations).First(&user, "email = ?", email)
+	result := repo.Preload(clause.Associations).First(&user, "email = ?", email)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -61,7 +61,7 @@ func (repo userRepository) GetByEmail(email string) (*models.User, error) {
 
 func (repo userRepository) IsExistingEmail(email string) (*bool, error) {
 	var exists bool
-	err := repo.db.Model(models.User{}).Select("count(*) > 0").Where("email = ?", email).Find(&exists).Error
+	err := repo.Model(models.User{}).Select("count(*) > 0").Where("email = ?", email).Find(&exists).Error
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (repo userRepository) IsExistingEmail(email string) (*bool, error) {
 }
 
 func (repo userRepository) AddUser(user models.User) (*models.User, error) {
-	result := repo.db.Create(&user)
+	result := repo.Create(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
