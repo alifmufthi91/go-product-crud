@@ -21,7 +21,7 @@ func NewRouter() *gin.Engine {
 		users := api.Group("users")
 		userController := controller.NewUserController()
 		{
-			users.GET("/", userController.GetAllUser)
+			users.GET("/", middlewares.Auth, userController.GetAllUser)
 			users.GET("/:id", middlewares.Auth, userController.GetUserById)
 			users.POST("/", userController.RegisterUser)
 			users.POST("/login", userController.LoginUser)
@@ -29,8 +29,8 @@ func NewRouter() *gin.Engine {
 		products := api.Group("products")
 		productController := controller.NewProductController()
 		{
-			// products.GET("/", productController)
-			// users.GET("/:id", middlewares.Auth, userController.GetUserById)
+			products.GET("/", middlewares.Auth, productController.GetAllProduct)
+			products.GET("/:id", middlewares.Auth, productController.GetProductById)
 			products.POST("/", middlewares.Auth, productController.AddProduct)
 		}
 	}

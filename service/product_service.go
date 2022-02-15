@@ -11,7 +11,7 @@ import (
 
 type ProductService interface {
 	GetAll() ([]app.Product, error)
-	GetById(productId string) (*app.Product, error)
+	GetById(productId uint) (*app.Product, error)
 	AddProduct(productInput validation.AddProduct, userId uint) (*app.Product, error)
 }
 
@@ -44,7 +44,7 @@ func (ps productService) GetAll() ([]app.Product, error) {
 	return productDatas, nil
 }
 
-func (ps productService) GetById(productId string) (*app.Product, error) {
+func (ps productService) GetById(productId uint) (*app.Product, error) {
 	logger.Info("Getting product from repository")
 	product, err := ps.productRepository.GetByProductId(productId)
 	if err != nil {

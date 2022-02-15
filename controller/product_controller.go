@@ -2,21 +2,22 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"product-crud/app"
 	"product-crud/controller/response"
 	"product-crud/service"
 	"product-crud/util/logger"
 	"product-crud/validation"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
 
 type ProductController interface {
-	// GetAllUser(*gin.Context)
-	// GetUserById(*gin.Context)
+	GetAllProduct(*gin.Context)
+	GetProductById(*gin.Context)
 	AddProduct(c *gin.Context)
-	// LoginUser(c *gin.Context)
 }
 
 type productController struct {
@@ -31,28 +32,33 @@ func NewProductController() ProductController {
 	}
 }
 
-// func (uc userController) GetAllUser(c *gin.Context) {
-// 	logger.Info("Get all user requested")
-// 	users, err := uc.userService.GetAll()
-// 	if err != nil {
-// 		logger.Error(err.Error())
-// 		response.Fail(c, errors.New("something went wrong").Error())
-// 		return
-// 	}
-// 	response.Success(c, users)
-// }
+func (pc productController) GetAllProduct(c *gin.Context) {
+	logger.Info("Get all product requested")
+	products, err := pc.productService.GetAll()
+	if err != nil {
+		logger.Error(err.Error())
+		response.Fail(c, errors.New("something went wrong").Error())
+		return
+	}
+	response.Success(c, products)
+}
 
-// func (uc userController) GetUserById(c *gin.Context) {
-// 	logger.Info(`Get user by id, id = %s`, c.Param("id"))
-// 	id := c.Param("id")
-// 	user, err := uc.userService.GetById(id)
-// 	if err != nil {
-// 		logger.Error(err.Error())
-// 		response.Fail(c, errors.New("something went wrong").Error())
-// 		return
-// 	}
-// 	response.Success(c, user)
-// }
+func (pc productController) GetProductById(c *gin.Context) {
+	logger.Info(`Get product by id, id = %s`, c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.Error(err.Error())
+		response.Fail(c, errors.New("something went wrong").Error())
+		return
+	}
+	product, err := pc.productService.GetById(uint(id))
+	if err != nil {
+		logger.Error(err.Error())
+		response.Fail(c, errors.New("something went wrong").Error())
+		return
+	}
+	response.Success(c, product)
+}
 
 func (pc productController) AddProduct(c *gin.Context) {
 	logger.Info(`Add new user`)
@@ -72,7 +78,12 @@ func (pc productController) AddProduct(c *gin.Context) {
 		return
 	}
 	userClaims, _ := c.Get("user")
-	user := userClaims.(*app.MyCustomClaims)
+	user, ok := userClaims.(*app.MyCustomClaims)
+	if !ok {
+		logger.Error("Error: userClaims type is not correct")
+		response.Fail(c, "Error: userClaims type is not correct")
+		return
+	}
 	product, err := pc.productService.AddProduct(input, user.UserId)
 	if err != nil {
 		logger.Error(err.Error())

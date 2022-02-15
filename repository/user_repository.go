@@ -6,6 +6,7 @@ import (
 	"product-crud/util/logger"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type userRepository struct {
@@ -30,7 +31,7 @@ func NewUserRepository() UserRepository {
 
 func (repo userRepository) GetAllUser() ([]models.User, error) {
 	users := []models.User{}
-	result := repo.db.Find(&users)
+	result := repo.db.Preload(clause.Associations).Find(&users)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -40,7 +41,7 @@ func (repo userRepository) GetAllUser() ([]models.User, error) {
 
 func (repo userRepository) GetByUserId(id uint) (*models.User, error) {
 	user := models.User{}
-	result := repo.db.First(&user, "id = ?", id)
+	result := repo.db.Preload(clause.Associations).First(&user, "id = ?", id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -50,7 +51,7 @@ func (repo userRepository) GetByUserId(id uint) (*models.User, error) {
 
 func (repo userRepository) GetByEmail(email string) (*models.User, error) {
 	user := models.User{}
-	result := repo.db.First(&user, "email = ?", email)
+	result := repo.db.Preload(clause.Associations).First(&user, "email = ?", email)
 	if result.Error != nil {
 		return nil, result.Error
 	}
