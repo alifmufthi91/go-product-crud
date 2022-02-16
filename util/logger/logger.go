@@ -1,9 +1,19 @@
 package logger
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"time"
 )
+
+type logWriter struct {
+	LogType string
+}
+
+func (writer logWriter) Write(bytes []byte) (int, error) {
+	return fmt.Print(time.Now().Local().Format("2006-01-02 15:04:05") + " [" + writer.LogType + "]: " + string(bytes))
+}
 
 var (
 	WarningLogger *log.Logger
@@ -12,9 +22,12 @@ var (
 )
 
 func Init() {
-	InfoLogger = log.New(os.Stderr, "INFO: ", log.Ldate|log.Ltime)
-	ErrorLogger = log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime)
-	WarningLogger = log.New(os.Stderr, "WARNING: ", log.Ldate|log.Ltime)
+	InfoLogger = log.New(os.Stderr, "", 0)
+	InfoLogger.SetOutput(logWriter{LogType: "INFO"})
+	ErrorLogger = log.New(os.Stderr, "", 0)
+	ErrorLogger.SetOutput(logWriter{LogType: "ERROR"})
+	WarningLogger = log.New(os.Stderr, "", 0)
+	WarningLogger.SetOutput(logWriter{LogType: "WARNING"})
 }
 
 func Info(format string, a ...interface{}) {
