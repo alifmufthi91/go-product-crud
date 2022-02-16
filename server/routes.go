@@ -38,7 +38,7 @@ func NewRouter() *gin.Engine {
 		files := api.Group("files")
 		filesController := controller.NewFileController()
 		{
-			files.POST("/upload", middlewares.Auth, filesController.Upload)
+			files.POST("/upload", middlewares.Auth, middlewares.BodySizeMiddleware, filesController.Upload)
 			files.GET("/:name", middlewares.Auth, filesController.Download)
 		}
 	}

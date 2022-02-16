@@ -40,6 +40,7 @@ func (fc fileController) Upload(c *gin.Context) {
 		response.Fail(c, errors.New("something went wrong").Error())
 		return
 	}
+	logger.Info(`file size: %+v`, header.Size)
 	ext := filepath.Ext(header.Filename)
 	uuid, err := uuid.NewRandom()
 	if err != nil {
