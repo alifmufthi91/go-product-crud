@@ -14,8 +14,8 @@ import (
 )
 
 type UserController interface {
-	GetAllUser(*gin.Context)
-	GetUserById(*gin.Context)
+	GetAllUser(c *gin.Context)
+	GetUserById(c *gin.Context)
 	RegisterUser(c *gin.Context)
 	LoginUser(c *gin.Context)
 }

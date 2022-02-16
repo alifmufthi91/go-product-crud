@@ -22,6 +22,8 @@ type Environment struct {
 	DBPort     string `envconfig:"DB_PORT"`
 
 	JWTSECRET string `envconfig:"JWT_SECRET"`
+
+	FilePath string `envconfig:"FILE_PATH"`
 }
 
 func GetEnv() *Environment {
@@ -37,6 +39,7 @@ func GetEnv() *Environment {
 		Env.DBName = os.Getenv("DB_NAME")
 		Env.DBPort = os.Getenv("DB_PORT")
 		Env.JWTSECRET = os.Getenv("JWT_SECRET")
+		Env.FilePath = os.Getenv("FILE_PATH")
 		logger.Info("Environment config set")
 	})
 	return &Env

@@ -35,6 +35,12 @@ func NewRouter() *gin.Engine {
 			products.PATCH("/:id", middlewares.Auth, productController.UpdateProduct)
 			products.DELETE("/:id", middlewares.Auth, productController.DeleteProduct)
 		}
+		files := api.Group("files")
+		filesController := controller.NewFileController()
+		{
+			files.POST("/upload", middlewares.Auth, filesController.Upload)
+			files.GET("/:name", middlewares.Auth, filesController.Download)
+		}
 	}
 
 	return router

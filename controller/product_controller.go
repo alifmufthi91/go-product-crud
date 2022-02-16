@@ -15,8 +15,8 @@ import (
 )
 
 type ProductController interface {
-	GetAllProduct(*gin.Context)
-	GetProductById(*gin.Context)
+	GetAllProduct(c *gin.Context)
+	GetProductById(c *gin.Context)
 	AddProduct(c *gin.Context)
 	UpdateProduct(c *gin.Context)
 	DeleteProduct(c *gin.Context)
