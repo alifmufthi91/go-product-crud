@@ -17,6 +17,8 @@ type ProductRepository interface {
 	GetAllProduct() ([]models.Product, error)
 	GetByProductId(productId uint) (*models.Product, error)
 	AddProduct(product models.Product) (*models.Product, error)
+	UpdateProduct(product models.Product) (*models.Product, error)
+	DeleteProduct(productId uint) error
 }
 
 func NewProductRepository() ProductRepository {
@@ -57,4 +59,24 @@ func (repo productRepository) AddProduct(product models.Product) (*models.Produc
 		return nil, result.Error
 	}
 	return &product, nil
+}
+
+func (repo productRepository) UpdateProduct(product models.Product) (*models.Product, error) {
+	result := repo.Updates(&product)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	result = repo.Preload(clause.Associations).First(&product, "id = ?", product.ID)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &product, nil
+}
+
+func (repo productRepository) DeleteProduct(productId uint) error {
+	result := repo.Delete(&models.Product{}, productId)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }

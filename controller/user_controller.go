@@ -33,13 +33,14 @@ func NewUserController() UserController {
 }
 
 func (uc userController) GetAllUser(c *gin.Context) {
-	logger.Info("Get all user requested")
+	logger.Info("Get all user request")
 	users, err := uc.userService.GetAll()
 	if err != nil {
 		logger.Error(err.Error())
 		response.Fail(c, errors.New("something went wrong").Error())
 		return
 	}
+	logger.Info("Get all user success")
 	response.Success(c, users)
 }
 
@@ -54,14 +55,15 @@ func (uc userController) GetUserById(c *gin.Context) {
 	user, err := uc.userService.GetById(uint(id))
 	if err != nil {
 		logger.Error(err.Error())
-		response.Fail(c, errors.New("something went wrong").Error())
+		response.Fail(c, err.Error())
 		return
 	}
+	logger.Info(`Get user by id, id = %s success`, c.Param("id"))
 	response.Success(c, user)
 }
 
 func (uc userController) RegisterUser(c *gin.Context) {
-	logger.Info(`Register new user`)
+	logger.Info(`Register new user request`)
 	var input validation.RegisterUser
 	err := json.NewDecoder(c.Request.Body).Decode(&input)
 	if err != nil {
@@ -83,11 +85,12 @@ func (uc userController) RegisterUser(c *gin.Context) {
 		response.Fail(c, err.Error())
 		return
 	}
+	logger.Info(`Register new user success`)
 	response.Success(c, user)
 }
 
 func (uc userController) LoginUser(c *gin.Context) {
-	logger.Info(`Login User`)
+	logger.Info(`Login User request`)
 	var input validation.LoginUser
 	err := json.NewDecoder(c.Request.Body).Decode(&input)
 	if err != nil {
@@ -108,5 +111,6 @@ func (uc userController) LoginUser(c *gin.Context) {
 		response.Fail(c, err.Error())
 		return
 	}
+	logger.Info(`Login User success`)
 	response.Success(c, user)
 }

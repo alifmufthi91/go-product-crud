@@ -32,6 +32,8 @@ func NewRouter() *gin.Engine {
 			products.GET("/", middlewares.Auth, productController.GetAllProduct)
 			products.GET("/:id", middlewares.Auth, productController.GetProductById)
 			products.POST("/", middlewares.Auth, productController.AddProduct)
+			products.PATCH("/:id", middlewares.Auth, productController.UpdateProduct)
+			products.DELETE("/:id", middlewares.Auth, productController.DeleteProduct)
 		}
 	}
 

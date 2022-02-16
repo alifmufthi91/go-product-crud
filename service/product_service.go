@@ -13,6 +13,8 @@ type ProductService interface {
 	GetAll() ([]app.Product, error)
 	GetById(productId uint) (*app.Product, error)
 	AddProduct(productInput validation.AddProduct, userId uint) (*app.Product, error)
+	UpdateProduct(productId uint, productInput validation.UpdateProduct, userId uint) (*app.Product, error)
+	DeleteProduct(productId uint, userId uint) error
 }
 
 type productService struct {
@@ -75,4 +77,42 @@ func (ps productService) AddProduct(productInput validation.AddProduct, userId u
 	logger.Info(`product data = %+v`, createdProduct)
 	productData := createdProduct.ProductToProduct()
 	return &productData, nil
+}
+
+func (ps productService) UpdateProduct(productId uint, productInput validation.UpdateProduct, userId uint) (*app.Product, error) {
+	logger.Info(`Updating product, product = %+v, user_id = %d`, productInput, userId)
+	product, _ := ps.productRepository.GetByProductId(productId)
+	if product == nil {
+		return nil, errors.New("product is not exists")
+	}
+	if product.UploaderId != userId {
+		return nil, errors.New("user is not allowed to modify this product")
+	}
+	product.ProductName = productInput.ProductName
+	product.ProductDescription = productInput.ProductDescription
+	product.Photo = productInput.Photo
+	updatedProduct, err := ps.productRepository.UpdateProduct(*product)
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Info(`product data = %+v`, updatedProduct)
+	productData := updatedProduct.ProductToProduct()
+	return &productData, nil
+}
+
+func (ps productService) DeleteProduct(productId uint, userId uint) error {
+	logger.Info(`Deleting product, product_id = %d, user_id = %d`, productId, userId)
+	product, _ := ps.productRepository.GetByProductId(productId)
+	if product == nil {
+		return errors.New("product is not exists")
+	}
+	if product.UploaderId != userId {
+		return errors.New("user is not allowed to modify this product")
+	}
+	err := ps.productRepository.DeleteProduct(productId)
+	if err != nil {
+		return err
+	}
+	return nil
 }
