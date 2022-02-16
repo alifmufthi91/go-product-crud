@@ -10,6 +10,7 @@ import (
 	"product-crud/util/logger"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type FileController interface {
@@ -39,7 +40,14 @@ func (fc fileController) Upload(c *gin.Context) {
 		response.Fail(c, errors.New("something went wrong").Error())
 		return
 	}
-	filename := header.Filename
+	ext := filepath.Ext(header.Filename)
+	uuid, err := uuid.NewRandom()
+	if err != nil {
+		logger.Error(err.Error())
+		response.Fail(c, errors.New("something went wrong").Error())
+		return
+	}
+	filename := uuid.String() + ext
 	out, err := os.Create(newpath + "/" + filename)
 	if err != nil {
 		logger.Error(err.Error())
