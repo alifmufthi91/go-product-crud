@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"product-crud/app"
 	"product-crud/database"
 	"product-crud/models"
 	"product-crud/util/logger"
@@ -14,7 +15,7 @@ type productRepository struct {
 }
 
 type ProductRepository interface {
-	GetAllProduct() ([]models.Product, error)
+	GetAllProduct(pagination *app.Pagination, count *int64) (*[]models.Product, error)
 	GetByProductId(productId uint) (*models.Product, error)
 	AddProduct(product models.Product) (*models.Product, error)
 	UpdateProduct(product models.Product) (*models.Product, error)
@@ -29,14 +30,16 @@ func NewProductRepository() ProductRepository {
 	}
 }
 
-func (repo productRepository) GetAllProduct() ([]models.Product, error) {
+func (repo productRepository) GetAllProduct(pagination *app.Pagination, count *int64) (*[]models.Product, error) {
 	products := []models.Product{}
-	result := repo.Preload(clause.Associations).Find(&products)
+	offset := (pagination.Page - 1) * pagination.Limit
+	queryBuilder := repo.Preload(clause.Associations).Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
+	result := queryBuilder.Find(&products).Limit(-1).Offset(-1).Count(count)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
-	return products, nil
+	return &products, nil
 }
 
 func (repo productRepository) GetByProductId(id uint) (*models.Product, error) {

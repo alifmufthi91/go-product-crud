@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"math"
 	"product-crud/app"
 	"product-crud/config"
 	"product-crud/models"
@@ -17,7 +18,7 @@ import (
 )
 
 type UserService interface {
-	GetAll() ([]app.User, error)
+	GetAll(pagination *app.Pagination) (*app.PaginatedResult, error)
 	GetById(userId uint) (*app.User, error)
 	Register(userInput validation.RegisterUser) (*app.User, error)
 	Login(userInput validation.LoginUser) (*string, error)
@@ -35,18 +36,26 @@ func NewUserService() UserService {
 	}
 }
 
-func (us userService) GetAll() ([]app.User, error) {
+func (us userService) GetAll(pagination *app.Pagination) (*app.PaginatedResult, error) {
 	logger.Info("Getting all user from repository")
-	users, err := us.userRepository.GetAllUser()
+	var count int64
+	users, err := us.userRepository.GetAllUser(pagination, &count)
 	if err != nil {
 		return nil, err
 	}
 	var userDatas []app.User
-	for _, x := range users {
+	for _, x := range *users {
 		userDatas = append(userDatas, x.UserToUser())
 	}
+	paginatedResult := app.PaginatedResult{
+		Items:      userDatas,
+		Page:       pagination.Page,
+		Size:       len(userDatas),
+		TotalItems: int(count),
+		TotalPage:  int(math.Ceil(float64(count) / float64(pagination.Limit))),
+	}
 
-	return userDatas, nil
+	return &paginatedResult, nil
 }
 
 func (us userService) GetById(userId uint) (*app.User, error) {

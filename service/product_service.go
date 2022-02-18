@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"math"
 	"product-crud/app"
 	"product-crud/models"
 	"product-crud/repository"
@@ -10,7 +11,7 @@ import (
 )
 
 type ProductService interface {
-	GetAll() ([]app.Product, error)
+	GetAll(pagination *app.Pagination) (*app.PaginatedResult, error)
 	GetById(productId uint) (*app.Product, error)
 	AddProduct(productInput validation.AddProduct, userId uint) (*app.Product, error)
 	UpdateProduct(productId uint, productInput validation.UpdateProduct, userId uint) (*app.Product, error)
@@ -32,18 +33,28 @@ func NewProductService() ProductService {
 	}
 }
 
-func (ps productService) GetAll() ([]app.Product, error) {
+func (ps productService) GetAll(pagination *app.Pagination) (*app.PaginatedResult, error) {
 	logger.Info("Getting all product from repository")
-	products, err := ps.productRepository.GetAllProduct()
+	var count int64
+	products, err := ps.productRepository.GetAllProduct(pagination, &count)
 	if err != nil {
 		return nil, err
 	}
+	logger.Info(`count: %+d`, count)
 	var productDatas []app.Product
-	for _, x := range products {
+	for _, x := range *products {
 		productDatas = append(productDatas, x.ProductToProduct())
 	}
 
-	return productDatas, nil
+	paginatedResult := app.PaginatedResult{
+		Items:      productDatas,
+		Page:       pagination.Page,
+		Size:       len(productDatas),
+		TotalItems: int(count),
+		TotalPage:  int(math.Ceil(float64(count) / float64(pagination.Limit))),
+	}
+
+	return &paginatedResult, nil
 }
 
 func (ps productService) GetById(productId uint) (*app.Product, error) {

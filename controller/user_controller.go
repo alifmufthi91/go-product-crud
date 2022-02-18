@@ -5,6 +5,7 @@ import (
 	"errors"
 	"product-crud/controller/response"
 	"product-crud/service"
+	"product-crud/util"
 	"product-crud/util/logger"
 	"product-crud/validation"
 	"strconv"
@@ -34,7 +35,8 @@ func NewUserController() UserController {
 
 func (uc userController) GetAllUser(c *gin.Context) {
 	logger.Info("Get all user request")
-	users, err := uc.userService.GetAll()
+	pagination := util.GeneratePaginationFromRequest(c)
+	users, err := uc.userService.GetAll(&pagination)
 	if err != nil {
 		logger.Error(err.Error())
 		response.Fail(c, errors.New("something went wrong").Error())

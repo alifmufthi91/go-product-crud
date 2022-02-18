@@ -6,6 +6,7 @@ import (
 	"product-crud/app"
 	"product-crud/controller/response"
 	"product-crud/service"
+	"product-crud/util"
 	"product-crud/util/logger"
 	"product-crud/validation"
 	"strconv"
@@ -36,7 +37,8 @@ func NewProductController() ProductController {
 
 func (pc productController) GetAllProduct(c *gin.Context) {
 	logger.Info("Get all product request")
-	products, err := pc.productService.GetAll()
+	pagination := util.GeneratePaginationFromRequest(c)
+	products, err := pc.productService.GetAll(&pagination)
 	if err != nil {
 		logger.Error(err.Error())
 		response.Fail(c, errors.New("something went wrong").Error())

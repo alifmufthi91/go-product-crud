@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"product-crud/app"
 	"product-crud/database"
 	"product-crud/models"
 	"product-crud/util/logger"
@@ -14,7 +15,7 @@ type userRepository struct {
 }
 
 type UserRepository interface {
-	GetAllUser() ([]models.User, error)
+	GetAllUser(pagination *app.Pagination, count *int64) (*[]models.User, error)
 	GetByUserId(userId uint) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
 	AddUser(user models.User) (*models.User, error)
@@ -29,14 +30,16 @@ func NewUserRepository() UserRepository {
 	}
 }
 
-func (repo userRepository) GetAllUser() ([]models.User, error) {
+func (repo userRepository) GetAllUser(pagination *app.Pagination, count *int64) (*[]models.User, error) {
 	users := []models.User{}
-	result := repo.Preload(clause.Associations).Find(&users)
+	offset := (pagination.Page - 1) * pagination.Limit
+	queryBuilder := repo.Preload(clause.Associations).Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
+	result := queryBuilder.Find(&users).Limit(-1).Offset(-1).Count(count)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
-	return users, nil
+	return &users, nil
 }
 
 func (repo userRepository) GetByUserId(id uint) (*models.User, error) {
