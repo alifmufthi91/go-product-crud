@@ -1,6 +1,6 @@
 
-# product-crud
-Ini adalah aplikasi backend sederhana dimana user dapat mendaftar dan melakukan login. Setelah user melakukan login, User dapat mendaftarkan produk, melakukan perubahan pada produk, menampilkan data produk dan menghapus produk dari database menggunakan API.
+# go-product-crud
+Ini adalah aplikasi backend golang sederhana dimana user dapat mendaftar dan melakukan login. Setelah user melakukan login, User dapat mendaftarkan produk, melakukan perubahan pada produk, menampilkan data produk dan menghapus produk dari database menggunakan API.
 
 ## Tech
 - Go 1.17.7
