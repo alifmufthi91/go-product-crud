@@ -22,6 +22,7 @@ go build
 
 #  Run App
 go run .
+```
 
 ## API List
 |API|Routes|Method|
@@ -32,8 +33,10 @@ go run .
 |File Upload |/api/files/upload|POST|
 |File Download|/api/files/:filename|GET|
 |Register Product |/api/products|POST|
-|Update Product |/api/products/:id|PUT|
+|Update Product |/api/products/:id|PATCH|
 |Delete Product |/api/products/:id|DELETE|
 |Get All Products |/api/products|GET|
 |Get Product |/api/products/:id|GET|
+
+
 
