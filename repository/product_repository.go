@@ -15,7 +15,7 @@ type productRepository struct {
 }
 
 type ProductRepository interface {
-	GetAllProduct(pagination *app.Pagination, count *int64) (*[]models.Product, error)
+	GetAllProduct(pagination *app.Pagination, count *int64) ([]*models.Product, error)
 	GetByProductId(productId uint) (*models.Product, error)
 	AddProduct(product models.Product) (*models.Product, error)
 	UpdateProduct(product models.Product) (*models.Product, error)
@@ -30,8 +30,8 @@ func NewProductRepository() ProductRepository {
 	}
 }
 
-func (repo productRepository) GetAllProduct(pagination *app.Pagination, count *int64) (*[]models.Product, error) {
-	products := []models.Product{}
+func (repo productRepository) GetAllProduct(pagination *app.Pagination, count *int64) ([]*models.Product, error) {
+	products := []*models.Product{}
 	offset := (pagination.Page - 1) * pagination.Limit
 	queryBuilder := repo.Preload(clause.Associations).Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
 	result := queryBuilder.Find(&products).Limit(-1).Offset(-1).Count(count)
@@ -39,7 +39,7 @@ func (repo productRepository) GetAllProduct(pagination *app.Pagination, count *i
 		return nil, result.Error
 	}
 
-	return &products, nil
+	return products, nil
 }
 
 func (repo productRepository) GetByProductId(id uint) (*models.Product, error) {

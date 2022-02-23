@@ -42,7 +42,7 @@ func (ps productService) GetAll(pagination *app.Pagination) (*app.PaginatedResul
 	}
 	logger.Info(`count: %+d`, count)
 	var productDatas []app.Product
-	for _, x := range *products {
+	for _, x := range products {
 		productDatas = append(productDatas, x.ProductToProduct())
 	}
 

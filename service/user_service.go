@@ -44,7 +44,7 @@ func (us userService) GetAll(pagination *app.Pagination) (*app.PaginatedResult, 
 		return nil, err
 	}
 	var userDatas []app.User
-	for _, x := range *users {
+	for _, x := range users {
 		userDatas = append(userDatas, x.UserToUser())
 	}
 	paginatedResult := app.PaginatedResult{
