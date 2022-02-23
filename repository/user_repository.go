@@ -33,7 +33,7 @@ func NewUserRepository() UserRepository {
 func (repo userRepository) GetAllUser(pagination *app.Pagination, count *int64) ([]*models.User, error) {
 	users := []*models.User{}
 	offset := (pagination.Page - 1) * pagination.Limit
-	queryBuilder := repo.Preload(clause.Associations).Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
+	queryBuilder := repo.Preload("Products.Uploader").Preload(clause.Associations).Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
 	result := queryBuilder.Find(&users).Limit(-1).Offset(-1).Count(count)
 	if result.Error != nil {
 		return nil, result.Error
@@ -44,7 +44,7 @@ func (repo userRepository) GetAllUser(pagination *app.Pagination, count *int64) 
 
 func (repo userRepository) GetByUserId(id uint) (*models.User, error) {
 	user := models.User{}
-	result := repo.Preload(clause.Associations).First(&user, "users.id = ?", id)
+	result := repo.Preload("Products.Uploader").Preload(clause.Associations).First(&user, "users.id = ?", id)
 	if result.Error != nil {
 		return nil, result.Error
 	}

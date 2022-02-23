@@ -6,5 +6,5 @@ type Product struct {
 	ProductDescription string `json:"product_description"`
 	Photo              string `json:"photo"`
 	UploaderId         uint   `json:"uploader_id"`
-	Uploader           User   `json:"uploader"`
+	Uploader           User   `json:"uploader,omitempty"`
 }
