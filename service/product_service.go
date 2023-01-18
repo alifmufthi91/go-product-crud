@@ -11,11 +11,11 @@ import (
 )
 
 type ProductService interface {
-	GetAll(pagination *app.Pagination) (*app.PaginatedResult, error)
-	GetById(productId uint) (*app.Product, error)
-	AddProduct(productInput validation.AddProduct, userId uint) (*app.Product, error)
-	UpdateProduct(productId uint, productInput validation.UpdateProduct, userId uint) (*app.Product, error)
-	DeleteProduct(productId uint, userId uint) error
+	GetAll(pagination *app.Pagination) *app.PaginatedResult
+	GetById(productId uint) *app.Product
+	AddProduct(productInput validation.AddProduct, userId uint) *app.Product
+	UpdateProduct(productId uint, productInput validation.UpdateProduct, userId uint) *app.Product
+	DeleteProduct(productId uint, userId uint)
 }
 
 type productService struct {
@@ -23,23 +23,21 @@ type productService struct {
 	userRepository    repository.UserRepository
 }
 
-func NewProductService() ProductService {
+func NewProductService(productRepository repository.ProductRepository, userRepository repository.UserRepository) *productService {
 	logger.Info("Initializing product service..")
-	ur := repository.NewProductRepository()
-	us := repository.NewUserRepository()
-	return productService{
-		productRepository: ur,
-		userRepository:    us,
+	pr := productRepository
+	ur := userRepository
+	return &productService{
+		productRepository: pr,
+		userRepository:    ur,
 	}
 }
 
-func (ps productService) GetAll(pagination *app.Pagination) (*app.PaginatedResult, error) {
+func (ps productService) GetAll(pagination *app.Pagination) *app.PaginatedResult {
 	logger.Info("Getting all product from repository")
 	var count int64
-	products, err := ps.productRepository.GetAllProduct(pagination, &count)
-	if err != nil {
-		return nil, err
-	}
+	products := ps.productRepository.GetAllProduct(pagination, &count)
+
 	logger.Info(`count: %+d`, count)
 	var productDatas []app.Product
 	for _, x := range products {
@@ -54,24 +52,22 @@ func (ps productService) GetAll(pagination *app.Pagination) (*app.PaginatedResul
 		TotalPage:  int(math.Ceil(float64(count) / float64(pagination.Limit))),
 	}
 
-	return &paginatedResult, nil
+	return &paginatedResult
 }
 
-func (ps productService) GetById(productId uint) (*app.Product, error) {
+func (ps productService) GetById(productId uint) *app.Product {
 	logger.Info("Getting product from repository")
-	product, err := ps.productRepository.GetByProductId(productId)
-	if err != nil {
-		return nil, err
-	}
+	product := ps.productRepository.GetByProductId(productId)
+
 	productData := product.ProductToProduct()
-	return &productData, nil
+	return &productData
 }
 
-func (ps productService) AddProduct(productInput validation.AddProduct, userId uint) (*app.Product, error) {
+func (ps productService) AddProduct(productInput validation.AddProduct, userId uint) *app.Product {
 	logger.Info(`Adding new product, product = %+v, user_id = %+v`, productInput, userId)
-	user, _ := ps.userRepository.GetByUserId(userId)
+	user := ps.userRepository.GetByUserId(userId)
 	if user == nil {
-		return nil, errors.New("user is not exists")
+		panic(errors.New("user is not exists"))
 	}
 
 	product := models.Product{
@@ -80,50 +76,40 @@ func (ps productService) AddProduct(productInput validation.AddProduct, userId u
 		Photo:              productInput.Photo,
 		UploaderId:         user.ID,
 	}
-	createdProduct, err := ps.productRepository.AddProduct(product)
-	if err != nil {
-		return nil, err
-	}
+	createdProduct := ps.productRepository.AddProduct(product)
 
 	logger.Info(`product data = %+v`, createdProduct)
 	productData := createdProduct.ProductToProduct()
-	return &productData, nil
+	return &productData
 }
 
-func (ps productService) UpdateProduct(productId uint, productInput validation.UpdateProduct, userId uint) (*app.Product, error) {
+func (ps productService) UpdateProduct(productId uint, productInput validation.UpdateProduct, userId uint) *app.Product {
 	logger.Info(`Updating product, product = %+v, user_id = %d`, productInput, userId)
-	product, _ := ps.productRepository.GetByProductId(productId)
+	product := ps.productRepository.GetByProductId(productId)
 	if product == nil {
-		return nil, errors.New("product is not exists")
+		panic(errors.New("product is not exists"))
 	}
 	if product.UploaderId != userId {
-		return nil, errors.New("user is not allowed to modify this product")
+		panic(errors.New("user is not allowed to modify this product"))
 	}
 	product.ProductName = productInput.ProductName
 	product.ProductDescription = productInput.ProductDescription
 	product.Photo = productInput.Photo
-	updatedProduct, err := ps.productRepository.UpdateProduct(*product)
-	if err != nil {
-		return nil, err
-	}
+	updatedProduct := ps.productRepository.UpdateProduct(*product)
 
 	logger.Info(`product data = %+v`, updatedProduct)
 	productData := updatedProduct.ProductToProduct()
-	return &productData, nil
+	return &productData
 }
 
-func (ps productService) DeleteProduct(productId uint, userId uint) error {
+func (ps productService) DeleteProduct(productId uint, userId uint) {
 	logger.Info(`Deleting product, product_id = %d, user_id = %d`, productId, userId)
-	product, _ := ps.productRepository.GetByProductId(productId)
+	product := ps.productRepository.GetByProductId(productId)
 	if product == nil {
-		return errors.New("product is not exists")
+		panic(errors.New("product is not exists"))
 	}
 	if product.UploaderId != userId {
-		return errors.New("user is not allowed to modify this product")
+		panic(errors.New("user is not allowed to modify this product"))
 	}
-	err := ps.productRepository.DeleteProduct(productId)
-	if err != nil {
-		return err
-	}
-	return nil
+	ps.productRepository.DeleteProduct(productId)
 }

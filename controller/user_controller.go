@@ -2,7 +2,7 @@ package controller
 
 import (
 	"encoding/json"
-	"errors"
+	"log"
 	"product-crud/controller/response"
 	"product-crud/service"
 	"product-crud/util"
@@ -25,94 +25,96 @@ type userController struct {
 	userService service.UserService
 }
 
-func NewUserController() UserController {
+func NewUserController(userService service.UserService) *userController {
 	logger.Info("Initializing user controller..")
-	us := service.NewUserService()
-	return userController{
+	us := userService
+	return &userController{
 		userService: us,
 	}
 }
 
 func (uc userController) GetAllUser(c *gin.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+			response.Fail(c, "Internal Server Error")
+			return
+		}
+	}()
 	logger.Info("Get all user request")
 	pagination := util.GeneratePaginationFromRequest(c)
-	users, err := uc.userService.GetAll(&pagination)
-	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, errors.New("something went wrong").Error())
-		return
-	}
+	users := uc.userService.GetAll(&pagination)
+
 	logger.Info("Get all user success")
 	response.Success(c, users)
 }
 
 func (uc userController) GetUserById(c *gin.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+			response.Fail(c, "Internal Server Error")
+			return
+		}
+	}()
 	logger.Info(`Get user by id, id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, errors.New("something went wrong").Error())
-		return
+		panic(err)
 	}
-	user, err := uc.userService.GetById(uint(id))
-	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
-	}
+	user := uc.userService.GetById(uint(id))
+
 	logger.Info(`Get user by id, id = %s success`, c.Param("id"))
 	response.Success(c, user)
 }
 
 func (uc userController) RegisterUser(c *gin.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+			response.Fail(c, "Internal Server Error")
+			return
+		}
+	}()
 	logger.Info(`Register new user request`)
 	var input validation.RegisterUser
 	err := json.NewDecoder(c.Request.Body).Decode(&input)
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
+		panic(err)
 	}
 	logger.Info(`Validating request, request = %+v`, input)
 	v := validator.New()
 	err = v.Struct(input)
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
+		panic(err)
 	}
-	user, err := uc.userService.Register(input)
-	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
-	}
+	user := uc.userService.Register(input)
+
 	logger.Info(`Register new user success`)
 	response.Success(c, user)
 }
 
 func (uc userController) LoginUser(c *gin.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+			response.Fail(c, "Internal Server Error")
+			return
+		}
+	}()
 	logger.Info(`Login User request`)
 	var input validation.LoginUser
 	err := json.NewDecoder(c.Request.Body).Decode(&input)
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
+		panic(err)
 	}
 	v := validator.New()
 	err = v.Struct(input)
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
+		panic(err)
 	}
-	user, err := uc.userService.Login(input)
-	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
-	}
+	user := uc.userService.Login(input)
+
 	logger.Info(`Login User success`)
 	response.Success(c, user)
 }

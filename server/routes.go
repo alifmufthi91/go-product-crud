@@ -3,6 +3,8 @@ package server
 import (
 	"product-crud/controller"
 	"product-crud/middlewares"
+	"product-crud/repository"
+	"product-crud/service"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -16,10 +18,15 @@ func NewRouter() *gin.Engine {
 	router.Use(gin.Logger())
 	router.Use(cors.Default())
 
+	userRepository := repository.NewUserRepository()
+	productRepository := repository.NewProductRepository()
+	userService := service.NewUserService(userRepository)
+	productService := service.NewProductService(productRepository, userRepository)
+
 	api := router.Group("api")
 	{
 		users := api.Group("users")
-		userController := controller.NewUserController()
+		userController := controller.NewUserController(userService)
 		{
 			users.GET("/", middlewares.Auth, userController.GetAllUser)
 			users.GET("/:id", middlewares.Auth, userController.GetUserById)
@@ -27,7 +34,7 @@ func NewRouter() *gin.Engine {
 			users.POST("/login", userController.LoginUser)
 		}
 		products := api.Group("products")
-		productController := controller.NewProductController()
+		productController := controller.NewProductController(productService)
 		{
 			products.GET("/", middlewares.Auth, productController.GetAllProduct)
 			products.GET("/:id", middlewares.Auth, productController.GetProductById)

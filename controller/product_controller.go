@@ -2,7 +2,7 @@ package controller
 
 import (
 	"encoding/json"
-	"errors"
+	"log"
 	"product-crud/app"
 	"product-crud/controller/response"
 	"product-crud/service"
@@ -27,140 +27,135 @@ type productController struct {
 	productService service.ProductService
 }
 
-func NewProductController() ProductController {
+func NewProductController(productService service.ProductService) *productController {
 	logger.Info("Initializing product controller..")
-	ps := service.NewProductService()
-	return productController{
+	ps := productService
+	return &productController{
 		productService: ps,
 	}
 }
 
 func (pc productController) GetAllProduct(c *gin.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+			response.Fail(c, "Internal Server Error")
+			return
+		}
+	}()
 	logger.Info("Get all product request")
 	pagination := util.GeneratePaginationFromRequest(c)
-	products, err := pc.productService.GetAll(&pagination)
-	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, errors.New("something went wrong").Error())
-		return
-	}
+	products := pc.productService.GetAll(&pagination)
+
 	logger.Info("Get all product success")
 	response.Success(c, products)
 }
 
 func (pc productController) GetProductById(c *gin.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+			response.Fail(c, "Internal Server Error")
+			return
+		}
+	}()
 	logger.Info(`Get product by id request, id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, errors.New("something went wrong").Error())
-		return
+		panic(err)
 	}
-	product, err := pc.productService.GetById(uint(id))
-	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
-	}
+	product := pc.productService.GetById(uint(id))
+
 	logger.Info(`Get product by id, id = %s success`, c.Param("id"))
 	response.Success(c, product)
 }
 
 func (pc productController) AddProduct(c *gin.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+			response.Fail(c, "Internal Server Error")
+			return
+		}
+	}()
 	logger.Info(`Add new product request`)
 	var input validation.AddProduct
 	err := json.NewDecoder(c.Request.Body).Decode(&input)
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
+		panic(err)
 	}
 	logger.Info(`Validating request, request = %+v`, input)
 	v := validator.New()
 	err = v.Struct(input)
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
+		panic(err)
 	}
 	userClaims, _ := c.Get("user")
 	user, ok := userClaims.(*app.MyCustomClaims)
 	if !ok {
-		logger.Error("Error: userClaims type is not correct")
-		response.Fail(c, "Error: userClaims type is not correct")
-		return
+		panic("Error: userClaims type is not correct")
 	}
-	product, err := pc.productService.AddProduct(input, user.UserId)
-	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
-	}
+	product := pc.productService.AddProduct(input, user.UserId)
+
 	logger.Info(`Add new product success`)
 	response.Success(c, product)
 }
 
 func (pc productController) UpdateProduct(c *gin.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+			response.Fail(c, "Internal Server Error")
+			return
+		}
+	}()
 	logger.Info(`Update product of id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, errors.New("something went wrong").Error())
-		return
+		panic(err)
 	}
 	var input validation.UpdateProduct
 	err = json.NewDecoder(c.Request.Body).Decode(&input)
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
+		panic(err)
 	}
 	logger.Info(`Validating request, request = %+v`, input)
 	v := validator.New()
 	err = v.Struct(input)
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
+		panic(err)
 	}
 	userClaims, _ := c.Get("user")
 	user, ok := userClaims.(*app.MyCustomClaims)
 	if !ok {
-		logger.Error("Error: userClaims type is not correct")
-		response.Fail(c, "Error: userClaims type is not correct")
-		return
+		panic("Error: userClaims type is not correct")
 	}
-	product, err := pc.productService.UpdateProduct(uint(id), input, user.UserId)
-	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
-	}
+	product := pc.productService.UpdateProduct(uint(id), input, user.UserId)
+
 	logger.Info(`Update product of id = %s success`, c.Param("id"))
 	response.Success(c, product)
 }
 
 func (pc productController) DeleteProduct(c *gin.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+			response.Fail(c, "Internal Server Error")
+			return
+		}
+	}()
 	logger.Info(`Delete product of id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, errors.New("something went wrong").Error())
-		return
+		panic(err)
 	}
 	userClaims, _ := c.Get("user")
 	user, ok := userClaims.(*app.MyCustomClaims)
 	if !ok {
-		logger.Error("Error: userClaims type is not correct")
-		response.Fail(c, "Error: userClaims type is not correct")
-		return
+		panic("Error: userClaims type is not correct")
 	}
-	err = pc.productService.DeleteProduct(uint(id), user.UserId)
-	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, err.Error())
-		return
-	}
+	pc.productService.DeleteProduct(uint(id), user.UserId)
+
 	logger.Info(`Delete product of id = %s success`, c.Param("id"))
 	response.Success(c, nil)
 }

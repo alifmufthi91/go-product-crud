@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type response struct {
+type Response struct {
 	Data    interface{} `json:"data,omitempty"`
 	Error   string      `json:"error,omitempty"`
 	Message string      `json:"message,omitempty"`
@@ -15,11 +15,11 @@ type response struct {
 
 func Success(c *gin.Context, data interface{}) {
 
-	respond(c, http.StatusOK, response{Message: "SUCCESS", Data: data, Status: http.StatusOK})
+	respond(c, http.StatusOK, Response{Message: "SUCCESS", Data: data, Status: http.StatusOK})
 }
 
 func Fail(c *gin.Context, err string) {
-	respond(c, http.StatusInternalServerError, response{Message: "Internal Error", Error: err, Status: http.StatusInternalServerError})
+	respond(c, http.StatusInternalServerError, Response{Message: "Internal Error", Error: err, Status: http.StatusInternalServerError})
 }
 
 func respond(c *gin.Context, code int, payload interface{}) {

@@ -18,31 +18,28 @@ import (
 )
 
 type UserService interface {
-	GetAll(pagination *app.Pagination) (*app.PaginatedResult, error)
-	GetById(userId uint) (*app.User, error)
-	Register(userInput validation.RegisterUser) (*app.User, error)
-	Login(userInput validation.LoginUser) (*string, error)
+	GetAll(pagination *app.Pagination) *app.PaginatedResult
+	GetById(userId uint) *app.User
+	Register(userInput validation.RegisterUser) *app.User
+	Login(userInput validation.LoginUser) *string
 }
 
 type userService struct {
 	userRepository repository.UserRepository
 }
 
-func NewUserService() UserService {
+func NewUserService(userRepository repository.UserRepository) *userService {
 	logger.Info("Initializing user service..")
-	ur := repository.NewUserRepository()
-	return userService{
+	ur := userRepository
+	return &userService{
 		userRepository: ur,
 	}
 }
 
-func (us userService) GetAll(pagination *app.Pagination) (*app.PaginatedResult, error) {
+func (us userService) GetAll(pagination *app.Pagination) *app.PaginatedResult {
 	logger.Info("Getting all user from repository")
 	var count int64
-	users, err := us.userRepository.GetAllUser(pagination, &count)
-	if err != nil {
-		return nil, err
-	}
+	users := us.userRepository.GetAllUser(pagination, &count)
 	var userDatas []app.User
 	for _, x := range users {
 		userDatas = append(userDatas, x.UserToUser())
@@ -55,24 +52,21 @@ func (us userService) GetAll(pagination *app.Pagination) (*app.PaginatedResult, 
 		TotalPage:  int(math.Ceil(float64(count) / float64(pagination.Limit))),
 	}
 
-	return &paginatedResult, nil
+	return &paginatedResult
 }
 
-func (us userService) GetById(userId uint) (*app.User, error) {
+func (us userService) GetById(userId uint) *app.User {
 	logger.Info("Getting user from repository")
-	user, err := us.userRepository.GetByUserId(userId)
-	if err != nil {
-		return nil, err
-	}
+	user := us.userRepository.GetByUserId(userId)
 	userData := user.UserToUser()
-	return &userData, nil
+	return &userData
 }
 
-func (us userService) Register(userInput validation.RegisterUser) (*app.User, error) {
+func (us userService) Register(userInput validation.RegisterUser) *app.User {
 	logger.Info(`Registering new user, user = %+v`, userInput)
-	existing, _ := us.userRepository.IsExistingEmail(userInput.Email)
+	existing := us.userRepository.IsExistingEmail(userInput.Email)
 	if *existing {
-		return nil, errors.New("email is already exists")
+		panic("email is already exists")
 	}
 	bv := []byte(userInput.Password)
 	hasher := sha256.New()
@@ -84,27 +78,21 @@ func (us userService) Register(userInput validation.RegisterUser) (*app.User, er
 		Email:     userInput.Email,
 		Password:  bv,
 	}
-	createdUser, err := us.userRepository.AddUser(user)
-	if err != nil {
-		return nil, err
-	}
+	createdUser := us.userRepository.AddUser(user)
 	userData := createdUser.UserToUser()
-	return &userData, nil
+	return &userData
 }
 
-func (us userService) Login(userInput validation.LoginUser) (*string, error) {
+func (us userService) Login(userInput validation.LoginUser) *string {
 	logger.Info(`Login user by email, email = %s`, userInput.Email)
-	user, err := us.userRepository.GetByEmail(userInput.Email)
-	if err != nil {
-		return nil, err
-	}
+	user := us.userRepository.GetByEmail(userInput.Email)
 
 	bv := []byte(userInput.Password)
 	hasher := sha256.New()
 	hasher.Write(bv)
 
 	if !bytes.Equal(user.Password, bv) {
-		return nil, errors.New(`user Password is wrong`)
+		panic(errors.New(`user Password is wrong`))
 	}
 
 	sign := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), app.MyCustomClaims{
@@ -120,7 +108,7 @@ func (us userService) Login(userInput validation.LoginUser) (*string, error) {
 	})
 	token, err := sign.SignedString([]byte(config.Env.JWTSECRET))
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	return &token, nil
+	return &token
 }

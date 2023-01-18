@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"product-crud/config"
@@ -21,58 +22,60 @@ type FileController interface {
 type fileController struct {
 }
 
-func NewFileController() FileController {
+func NewFileController() *fileController {
 	logger.Info("Initializing file controller..")
-	return fileController{}
+	return &fileController{}
 }
 
 func (fc fileController) Upload(c *gin.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+			response.Fail(c, "Internal Server Error")
+			return
+		}
+	}()
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, errors.New("something went wrong").Error())
-		return
+		panic(err)
 	}
 	newpath := filepath.Join(config.Env.FilePath, "public")
 	err = os.MkdirAll(newpath, os.ModePerm)
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, errors.New("something went wrong").Error())
-		return
+		panic(err)
 	}
 	logger.Info(`file size: %+v`, header.Size)
 	ext := filepath.Ext(header.Filename)
 	uuid, err := uuid.NewRandom()
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, errors.New("something went wrong").Error())
-		return
+		panic(err)
 	}
 	filename := uuid.String() + ext
 	out, err := os.Create(newpath + "/" + filename)
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, errors.New("something went wrong").Error())
-		return
+		panic(err)
 	}
 	defer out.Close()
 	_, err = io.Copy(out, file)
 	if err != nil {
-		logger.Error(err.Error())
-		response.Fail(c, errors.New("something went wrong").Error())
-		return
+		panic(err)
 	}
 	filepath := filename
 	response.Success(c, filepath)
 }
 
 func (fc fileController) Download(c *gin.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+			response.Fail(c, "Internal Server Error")
+			return
+		}
+	}()
 	newpath := filepath.Join(config.Env.FilePath, "public")
 	filename := c.Param("name")
 	if _, err := os.Stat(newpath + "/" + filename); errors.Is(err, os.ErrNotExist) {
-		logger.Error(err.Error())
-		response.Fail(c, errors.New("something went wrong").Error())
-		return
+		panic(err)
 	}
 	c.File(newpath + "/" + filename)
 

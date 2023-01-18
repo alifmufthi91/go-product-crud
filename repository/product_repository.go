@@ -15,71 +15,70 @@ type productRepository struct {
 }
 
 type ProductRepository interface {
-	GetAllProduct(pagination *app.Pagination, count *int64) ([]*models.Product, error)
-	GetByProductId(productId uint) (*models.Product, error)
-	AddProduct(product models.Product) (*models.Product, error)
-	UpdateProduct(product models.Product) (*models.Product, error)
-	DeleteProduct(productId uint) error
+	GetAllProduct(pagination *app.Pagination, count *int64) []*models.Product
+	GetByProductId(productId uint) *models.Product
+	AddProduct(product models.Product) *models.Product
+	UpdateProduct(product models.Product) *models.Product
+	DeleteProduct(productId uint)
 }
 
-func NewProductRepository() ProductRepository {
+func NewProductRepository() *productRepository {
 	logger.Info("Initializing product repository..")
 	dbconn := database.DBConnection()
-	return productRepository{
+	return &productRepository{
 		DB: dbconn,
 	}
 }
 
-func (repo productRepository) GetAllProduct(pagination *app.Pagination, count *int64) ([]*models.Product, error) {
+func (repo productRepository) GetAllProduct(pagination *app.Pagination, count *int64) []*models.Product {
 	products := []*models.Product{}
 	offset := (pagination.Page - 1) * pagination.Limit
 	queryBuilder := repo.Preload(clause.Associations).Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
 	result := queryBuilder.Find(&products).Limit(-1).Offset(-1).Count(count)
 	if result.Error != nil {
-		return nil, result.Error
+		panic(result.Error)
 	}
 
-	return products, nil
+	return products
 }
 
-func (repo productRepository) GetByProductId(id uint) (*models.Product, error) {
+func (repo productRepository) GetByProductId(id uint) *models.Product {
 	product := models.Product{}
 	result := repo.Preload(clause.Associations).First(&product, "id = ?", id)
 	if result.Error != nil {
-		return nil, result.Error
+		panic(result.Error)
 	}
 
-	return &product, nil
+	return &product
 }
 
-func (repo productRepository) AddProduct(product models.Product) (*models.Product, error) {
+func (repo productRepository) AddProduct(product models.Product) *models.Product {
 	result := repo.Create(&product)
 	if result.Error != nil {
-		return nil, result.Error
+		panic(result.Error)
 	}
 	result = repo.Preload(clause.Associations).First(&product, "id = ?", product.ID)
 	if result.Error != nil {
-		return nil, result.Error
+		panic(result.Error)
 	}
-	return &product, nil
+	return &product
 }
 
-func (repo productRepository) UpdateProduct(product models.Product) (*models.Product, error) {
+func (repo productRepository) UpdateProduct(product models.Product) *models.Product {
 	result := repo.Updates(&product)
 	if result.Error != nil {
-		return nil, result.Error
+		panic(result.Error)
 	}
 	result = repo.Preload(clause.Associations).First(&product, "id = ?", product.ID)
 	if result.Error != nil {
-		return nil, result.Error
+		panic(result.Error)
 	}
-	return &product, nil
+	return &product
 }
 
-func (repo productRepository) DeleteProduct(productId uint) error {
+func (repo productRepository) DeleteProduct(productId uint) {
 	result := repo.Delete(&models.Product{}, productId)
 	if result.Error != nil {
-		return result.Error
+		panic(result.Error)
 	}
-	return nil
 }
