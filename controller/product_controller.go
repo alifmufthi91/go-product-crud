@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"log"
 	"product-crud/app"
 	"product-crud/controller/response"
 	"product-crud/service"
@@ -38,7 +37,7 @@ func NewProductController(productService service.ProductService) *productControl
 func (pc productController) GetAllProduct(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Recovered from panic:", r)
+			logger.Error("Recovered from panic: %+v", r)
 			response.Fail(c, "Internal Server Error")
 			return
 		}
@@ -54,7 +53,7 @@ func (pc productController) GetAllProduct(c *gin.Context) {
 func (pc productController) GetProductById(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Recovered from panic:", r)
+			logger.Error("Recovered from panic: %+v", r)
 			response.Fail(c, "Internal Server Error")
 			return
 		}
@@ -73,7 +72,7 @@ func (pc productController) GetProductById(c *gin.Context) {
 func (pc productController) AddProduct(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Recovered from panic:", r)
+			logger.Error("Recovered from panic: %+v", r)
 			response.Fail(c, "Internal Server Error")
 			return
 		}
@@ -104,7 +103,7 @@ func (pc productController) AddProduct(c *gin.Context) {
 func (pc productController) UpdateProduct(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Recovered from panic:", r)
+			logger.Error("Recovered from panic: %+v", r)
 			response.Fail(c, "Internal Server Error")
 			return
 		}
@@ -139,7 +138,7 @@ func (pc productController) UpdateProduct(c *gin.Context) {
 func (pc productController) DeleteProduct(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Recovered from panic:", r)
+			logger.Error("Recovered from panic: %+v", r)
 			response.Fail(c, "Internal Server Error")
 			return
 		}

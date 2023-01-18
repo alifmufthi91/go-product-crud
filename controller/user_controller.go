@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"log"
 	"product-crud/controller/response"
 	"product-crud/service"
 	"product-crud/util"
@@ -36,7 +35,7 @@ func NewUserController(userService service.UserService) *userController {
 func (uc userController) GetAllUser(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Recovered from panic:", r)
+			logger.Error("Recovered from panic: %+v", r)
 			response.Fail(c, "Internal Server Error")
 			return
 		}
@@ -52,7 +51,7 @@ func (uc userController) GetAllUser(c *gin.Context) {
 func (uc userController) GetUserById(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Recovered from panic:", r)
+			logger.Error("Recovered from panic: %+v", r)
 			response.Fail(c, "Internal Server Error")
 			return
 		}
@@ -71,7 +70,7 @@ func (uc userController) GetUserById(c *gin.Context) {
 func (uc userController) RegisterUser(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Recovered from panic:", r)
+			logger.Error("Recovered from panic: %+v", r)
 			response.Fail(c, "Internal Server Error")
 			return
 		}
@@ -97,7 +96,7 @@ func (uc userController) RegisterUser(c *gin.Context) {
 func (uc userController) LoginUser(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Recovered from panic:", r)
+			logger.Error("Recovered from panic: %+v", r)
 			response.Fail(c, "Internal Server Error")
 			return
 		}

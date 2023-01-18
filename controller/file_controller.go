@@ -3,7 +3,6 @@ package controller
 import (
 	"errors"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"product-crud/config"
@@ -30,7 +29,7 @@ func NewFileController() *fileController {
 func (fc fileController) Upload(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Recovered from panic:", r)
+			logger.Error("Recovered from panic: %+v", r)
 			response.Fail(c, "Internal Server Error")
 			return
 		}
@@ -67,7 +66,7 @@ func (fc fileController) Upload(c *gin.Context) {
 func (fc fileController) Download(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Recovered from panic:", r)
+			logger.Error("Recovered from panic: %+v", r)
 			response.Fail(c, "Internal Server Error")
 			return
 		}
