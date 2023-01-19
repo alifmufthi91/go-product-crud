@@ -30,9 +30,8 @@ type userService struct {
 
 func NewUserService(userRepository repository.UserRepository) *userService {
 	logger.Info("Initializing user service..")
-	ur := userRepository
 	return &userService{
-		userRepository: ur,
+		userRepository: userRepository,
 	}
 }
 

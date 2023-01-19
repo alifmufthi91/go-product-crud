@@ -25,11 +25,9 @@ type productService struct {
 
 func NewProductService(productRepository repository.ProductRepository, userRepository repository.UserRepository) *productService {
 	logger.Info("Initializing product service..")
-	pr := productRepository
-	ur := userRepository
 	return &productService{
-		productRepository: pr,
-		userRepository:    ur,
+		productRepository: productRepository,
+		userRepository:    userRepository,
 	}
 }
 

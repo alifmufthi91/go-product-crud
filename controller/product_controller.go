@@ -29,9 +29,8 @@ type productController struct {
 
 func NewProductController(productService service.ProductService) *productController {
 	logger.Info("Initializing product controller..")
-	ps := productService
 	return &productController{
-		productService: ps,
+		productService: productService,
 	}
 }
 

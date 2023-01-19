@@ -27,9 +27,8 @@ type userController struct {
 
 func NewUserController(userService service.UserService) *userController {
 	logger.Info("Initializing user controller..")
-	us := userService
 	return &userController{
-		userService: us,
+		userService: userService,
 	}
 }
 
