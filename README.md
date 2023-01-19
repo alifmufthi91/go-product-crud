@@ -4,7 +4,8 @@ Ini adalah aplikasi backend golang sederhana dimana user dapat mendaftar dan mel
 
 ## Tech
 - Go 1.17.7
-- PostgresQL
+- MySQL
+- Redis
 
 ## Getting Started
 ``` sh
