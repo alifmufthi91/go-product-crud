@@ -198,3 +198,5 @@ func (pc productController) DeleteProduct(c *gin.Context) {
 	logger.Info(`Delete product of id = %s success`, c.Param("id"))
 	response.Success(c, nil, false)
 }
+
+var _ ProductController = (*productController)(nil)

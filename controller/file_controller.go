@@ -79,3 +79,5 @@ func (fc fileController) Download(c *gin.Context) {
 	c.File(newpath + "/" + filename)
 
 }
+
+var _ FileController = (*fileController)(nil)

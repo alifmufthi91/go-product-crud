@@ -113,3 +113,5 @@ func (ps productService) DeleteProduct(productId uint, userId uint) {
 	}
 	ps.productRepository.DeleteProduct(productId)
 }
+
+var _ ProductService = (*productService)(nil)

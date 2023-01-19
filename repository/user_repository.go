@@ -79,3 +79,5 @@ func (repo userRepository) AddUser(user models.User) *models.User {
 
 	return &user
 }
+
+var _ UserRepository = (*userRepository)(nil)

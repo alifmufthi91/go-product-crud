@@ -82,3 +82,5 @@ func (repo productRepository) DeleteProduct(productId uint) {
 		panic(result.Error)
 	}
 }
+
+var _ ProductRepository = (*productRepository)(nil)

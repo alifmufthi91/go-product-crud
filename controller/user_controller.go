@@ -158,3 +158,5 @@ func (uc userController) LoginUser(c *gin.Context) {
 	logger.Info(`Login User success`)
 	response.Success(c, user, false)
 }
+
+var _ UserController = (*userController)(nil)

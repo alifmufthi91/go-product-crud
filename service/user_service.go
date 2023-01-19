@@ -112,3 +112,5 @@ func (us userService) Login(userInput validation.LoginUser) *string {
 	}
 	return &token
 }
+
+var _ UserService = (*userService)(nil)
