@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"product-crud/app"
+	"product-crud/cache"
 	"product-crud/controller/response"
 	"product-crud/service"
 	"product-crud/util"
@@ -44,10 +45,30 @@ func (pc productController) GetAllProduct(c *gin.Context) {
 	}()
 	logger.Info("Get all product request")
 	pagination := util.GeneratePaginationFromRequest(c)
-	products := pc.productService.GetAll(&pagination)
+
+	hash := util.HashFromStruct(pagination)
+	key := "GetAllProduct:all:" + hash
+
+	var cached interface{}
+	if c.DefaultQuery("no_cache", "0") == "0" {
+		cached = cache.Get(key)
+	}
+
+	var products interface{}
+	isFromCache := false
+	if cached != nil {
+		logger.Info("Getting from cache")
+		products = cached
+		isFromCache = true
+	} else {
+		products = pc.productService.GetAll(&pagination)
+	}
+	if cached == nil {
+		cache.Set(key, products)
+	}
 
 	logger.Info("Get all product success")
-	response.Success(c, products, false)
+	response.Success(c, products, isFromCache)
 }
 
 func (pc productController) GetProductById(c *gin.Context) {
@@ -63,10 +84,29 @@ func (pc productController) GetProductById(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	product := pc.productService.GetById(uint(id))
+
+	key := "GetProductById:" + c.Param("id")
+
+	var cached interface{}
+	if c.DefaultQuery("no_cache", "0") == "0" {
+		cached = cache.Get(key)
+	}
+
+	var product interface{}
+	isFromCache := false
+	if cached != nil {
+		logger.Info("Getting from cache")
+		product = cached
+		isFromCache = true
+	} else {
+		product = pc.productService.GetById(uint(id))
+	}
+	if cached == nil {
+		cache.Set(key, product)
+	}
 
 	logger.Info(`Get product by id, id = %s success`, c.Param("id"))
-	response.Success(c, product, false)
+	response.Success(c, product, isFromCache)
 }
 
 func (pc productController) AddProduct(c *gin.Context) {
