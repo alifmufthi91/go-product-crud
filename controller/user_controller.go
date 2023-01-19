@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"product-crud/cache"
 	"product-crud/controller/response"
 	"product-crud/service"
 	"product-crud/util"
@@ -40,12 +41,31 @@ func (uc userController) GetAllUser(c *gin.Context) {
 			return
 		}
 	}()
-	logger.Info("Get all user request")
-	pagination := util.GeneratePaginationFromRequest(c)
-	users := uc.userService.GetAll(&pagination)
 
+	logger.Info("Get all user request")
+
+	pagination := util.GeneratePaginationFromRequest(c)
+	hash := util.HashFromStruct(pagination)
+	key := "GetAllUser:all:" + hash
+
+	var cached interface{}
+	if c.DefaultQuery("no_cache", "0") == "0" {
+		cached = cache.Get(key)
+	}
+	var users interface{}
+	isFromCache := false
+	if cached != nil {
+		logger.Info("Getting from cache")
+		users = cached
+		isFromCache = true
+	} else {
+		users = uc.userService.GetAll(&pagination)
+	}
+	if cached == nil {
+		cache.Set(key, users)
+	}
 	logger.Info("Get all user success")
-	response.Success(c, users)
+	response.Success(c, users, isFromCache)
 }
 
 func (uc userController) GetUserById(c *gin.Context) {
@@ -56,15 +76,36 @@ func (uc userController) GetUserById(c *gin.Context) {
 			return
 		}
 	}()
+
 	logger.Info(`Get user by id, id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
+
 	if err != nil {
 		panic(err)
 	}
-	user := uc.userService.GetById(uint(id))
+
+	key := "GetUserById:" + c.Param("id")
+
+	var cached interface{}
+	if c.DefaultQuery("no_cache", "0") == "0" {
+		cached = cache.Get(key)
+	}
+
+	var user interface{}
+	isFromCache := false
+	if cached != nil {
+		logger.Info("Getting from cache")
+		user = cached
+		isFromCache = true
+	} else {
+		user = uc.userService.GetById(uint(id))
+	}
+	if cached == nil {
+		cache.Set(key, user)
+	}
 
 	logger.Info(`Get user by id, id = %s success`, c.Param("id"))
-	response.Success(c, user)
+	response.Success(c, user, isFromCache)
 }
 
 func (uc userController) RegisterUser(c *gin.Context) {
@@ -90,7 +131,7 @@ func (uc userController) RegisterUser(c *gin.Context) {
 	user := uc.userService.Register(input)
 
 	logger.Info(`Register new user success`)
-	response.Success(c, user)
+	response.Success(c, user, false)
 }
 
 func (uc userController) LoginUser(c *gin.Context) {
@@ -115,5 +156,5 @@ func (uc userController) LoginUser(c *gin.Context) {
 	user := uc.userService.Login(input)
 
 	logger.Info(`Login User success`)
-	response.Success(c, user)
+	response.Success(c, user, false)
 }

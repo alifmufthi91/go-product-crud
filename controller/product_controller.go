@@ -47,7 +47,7 @@ func (pc productController) GetAllProduct(c *gin.Context) {
 	products := pc.productService.GetAll(&pagination)
 
 	logger.Info("Get all product success")
-	response.Success(c, products)
+	response.Success(c, products, false)
 }
 
 func (pc productController) GetProductById(c *gin.Context) {
@@ -66,7 +66,7 @@ func (pc productController) GetProductById(c *gin.Context) {
 	product := pc.productService.GetById(uint(id))
 
 	logger.Info(`Get product by id, id = %s success`, c.Param("id"))
-	response.Success(c, product)
+	response.Success(c, product, false)
 }
 
 func (pc productController) AddProduct(c *gin.Context) {
@@ -97,7 +97,7 @@ func (pc productController) AddProduct(c *gin.Context) {
 	product := pc.productService.AddProduct(input, user.UserId)
 
 	logger.Info(`Add new product success`)
-	response.Success(c, product)
+	response.Success(c, product, false)
 }
 
 func (pc productController) UpdateProduct(c *gin.Context) {
@@ -132,7 +132,7 @@ func (pc productController) UpdateProduct(c *gin.Context) {
 	product := pc.productService.UpdateProduct(uint(id), input, user.UserId)
 
 	logger.Info(`Update product of id = %s success`, c.Param("id"))
-	response.Success(c, product)
+	response.Success(c, product, false)
 }
 
 func (pc productController) DeleteProduct(c *gin.Context) {
@@ -156,5 +156,5 @@ func (pc productController) DeleteProduct(c *gin.Context) {
 	pc.productService.DeleteProduct(uint(id), user.UserId)
 
 	logger.Info(`Delete product of id = %s success`, c.Param("id"))
-	response.Success(c, nil)
+	response.Success(c, nil, false)
 }

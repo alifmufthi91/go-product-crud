@@ -60,7 +60,7 @@ func (fc fileController) Upload(c *gin.Context) {
 		panic(err)
 	}
 	filepath := filename
-	response.Success(c, filepath)
+	response.Success(c, filepath, false)
 }
 
 func (fc fileController) Download(c *gin.Context) {
