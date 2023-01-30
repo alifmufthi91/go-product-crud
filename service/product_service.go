@@ -56,7 +56,6 @@ func (ps productService) GetAll(pagination *app.Pagination) *app.PaginatedResult
 func (ps productService) GetById(productId uint) *app.Product {
 	logger.Info("Getting product from repository")
 	product := ps.productRepository.GetByProductId(productId)
-
 	productData := product.ProductToProduct()
 	return &productData
 }
@@ -64,9 +63,6 @@ func (ps productService) GetById(productId uint) *app.Product {
 func (ps productService) AddProduct(productInput validation.AddProduct, userId uint) *app.Product {
 	logger.Info(`Adding new product, product = %+v, user_id = %+v`, productInput, userId)
 	user := ps.userRepository.GetByUserId(userId)
-	if user == nil {
-		panic(errors.New("user is not exists"))
-	}
 
 	product := models.Product{
 		ProductName:        productInput.ProductName,
@@ -84,9 +80,6 @@ func (ps productService) AddProduct(productInput validation.AddProduct, userId u
 func (ps productService) UpdateProduct(productId uint, productInput validation.UpdateProduct, userId uint) *app.Product {
 	logger.Info(`Updating product, product = %+v, user_id = %d`, productInput, userId)
 	product := ps.productRepository.GetByProductId(productId)
-	if product == nil {
-		panic(errors.New("product is not exists"))
-	}
 	if product.UploaderId != userId {
 		panic(errors.New("user is not allowed to modify this product"))
 	}
@@ -103,9 +96,6 @@ func (ps productService) UpdateProduct(productId uint, productInput validation.U
 func (ps productService) DeleteProduct(productId uint, userId uint) {
 	logger.Info(`Deleting product, product_id = %d, user_id = %d`, productId, userId)
 	product := ps.productRepository.GetByProductId(productId)
-	if product == nil {
-		panic(errors.New("product is not exists"))
-	}
 	if product.UploaderId != userId {
 		panic(errors.New("user is not allowed to modify this product"))
 	}

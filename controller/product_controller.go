@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"product-crud/app"
 	"product-crud/cache"
 	"product-crud/controller/response"
@@ -35,34 +36,30 @@ func NewProductController(productService service.ProductService) *productControl
 }
 
 func (pc productController) GetAllProduct(c *gin.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("Recovered from panic: %+v", r)
-			response.Fail(c, "Internal Server Error")
-			return
-		}
-	}()
+	defer response.ErrorHandling(c)
+
 	logger.Info("Get all product request")
 	pagination := util.GeneratePaginationFromRequest(c)
 
 	hash := util.HashFromStruct(pagination)
 	key := "GetAllProduct:all:" + hash
 
-	var cached interface{}
+	var products = app.PaginatedResult{}
 	if c.DefaultQuery("no_cache", "0") == "0" {
-		cached = cache.Get(key)
+		err := cache.Get(key, &products)
+		if err != nil {
+			panic(err)
+		}
 	}
 
-	var products interface{}
 	isFromCache := false
-	if cached != nil {
+	if !products.IsEmpty() {
 		logger.Info("Getting from cache")
-		products = cached
 		isFromCache = true
 	} else {
-		products = pc.productService.GetAll(&pagination)
+		products = *pc.productService.GetAll(&pagination)
 	}
-	if cached == nil {
+	if !isFromCache {
 		cache.Set(key, products)
 	}
 
@@ -71,13 +68,8 @@ func (pc productController) GetAllProduct(c *gin.Context) {
 }
 
 func (pc productController) GetProductById(c *gin.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("Recovered from panic: %+v", r)
-			response.Fail(c, "Internal Server Error")
-			return
-		}
-	}()
+	defer response.ErrorHandling(c)
+
 	logger.Info(`Get product by id request, id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -86,21 +78,22 @@ func (pc productController) GetProductById(c *gin.Context) {
 
 	key := "GetProductById:" + c.Param("id")
 
-	var cached interface{}
+	var product = app.Product{}
 	if c.DefaultQuery("no_cache", "0") == "0" {
-		cached = cache.Get(key)
+		err := cache.Get(key, &product)
+		if err != nil {
+			panic(err)
+		}
 	}
 
-	var product interface{}
 	isFromCache := false
-	if cached != nil {
+	if !product.IsEmpty() {
 		logger.Info("Getting from cache")
-		product = cached
 		isFromCache = true
 	} else {
-		product = pc.productService.GetById(uint(id))
+		product = *pc.productService.GetById(uint(id))
 	}
-	if cached == nil {
+	if !isFromCache {
 		cache.Set(key, product)
 	}
 
@@ -109,13 +102,8 @@ func (pc productController) GetProductById(c *gin.Context) {
 }
 
 func (pc productController) AddProduct(c *gin.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("Recovered from panic: %+v", r)
-			response.Fail(c, "Internal Server Error")
-			return
-		}
-	}()
+	defer response.ErrorHandling(c)
+
 	logger.Info(`Add new product request`)
 	var input validation.AddProduct
 	err := json.NewDecoder(c.Request.Body).Decode(&input)
@@ -131,7 +119,7 @@ func (pc productController) AddProduct(c *gin.Context) {
 	userClaims, _ := c.Get("user")
 	user, ok := userClaims.(*app.MyCustomClaims)
 	if !ok {
-		panic("Error: userClaims type is not correct")
+		panic(errors.New("userClaims type is not correct"))
 	}
 	product := pc.productService.AddProduct(input, user.UserId)
 
@@ -140,13 +128,8 @@ func (pc productController) AddProduct(c *gin.Context) {
 }
 
 func (pc productController) UpdateProduct(c *gin.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("Recovered from panic: %+v", r)
-			response.Fail(c, "Internal Server Error")
-			return
-		}
-	}()
+	defer response.ErrorHandling(c)
+
 	logger.Info(`Update product of id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -166,7 +149,7 @@ func (pc productController) UpdateProduct(c *gin.Context) {
 	userClaims, _ := c.Get("user")
 	user, ok := userClaims.(*app.MyCustomClaims)
 	if !ok {
-		panic("Error: userClaims type is not correct")
+		panic(errors.New("userClaims type is not correct"))
 	}
 	product := pc.productService.UpdateProduct(uint(id), input, user.UserId)
 
@@ -175,13 +158,8 @@ func (pc productController) UpdateProduct(c *gin.Context) {
 }
 
 func (pc productController) DeleteProduct(c *gin.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("Recovered from panic: %+v", r)
-			response.Fail(c, "Internal Server Error")
-			return
-		}
-	}()
+	defer response.ErrorHandling(c)
+
 	logger.Info(`Delete product of id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -190,7 +168,7 @@ func (pc productController) DeleteProduct(c *gin.Context) {
 	userClaims, _ := c.Get("user")
 	user, ok := userClaims.(*app.MyCustomClaims)
 	if !ok {
-		panic("Error: userClaims type is not correct")
+		panic(errors.New("userClaims type is not correct"))
 	}
 	pc.productService.DeleteProduct(uint(id), user.UserId)
 

@@ -65,7 +65,7 @@ func (us userService) Register(userInput validation.RegisterUser) *app.User {
 	logger.Info(`Registering new user, user = %+v`, userInput)
 	existing := us.userRepository.IsExistingEmail(userInput.Email)
 	if *existing {
-		panic("email is already exists")
+		panic(errors.New("email is already exists"))
 	}
 	bv := []byte(userInput.Password)
 	hasher := sha256.New()

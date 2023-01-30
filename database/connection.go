@@ -44,7 +44,7 @@ func DBConnection() *gorm.DB {
 		})
 		if err != nil {
 			logger.Error(err.Error())
-			panic(err.Error())
+			panic(err)
 		}
 		conn = db
 	})

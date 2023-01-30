@@ -14,6 +14,6 @@ func Init() {
 	logger.Info(fmt.Sprintf("Running Server on Port: %s", env.Port))
 	err := r.Run(fmt.Sprintf("localhost:%s", env.Port))
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 }

@@ -3,6 +3,7 @@ package models
 import (
 	app "product-crud/app"
 
+	"github.com/google/go-cmp/cmp"
 	"gorm.io/gorm"
 )
 
@@ -27,4 +28,8 @@ func (u *User) UserToUser() app.User {
 		LastName:  u.LastName,
 		Products:  productDatas,
 	}
+}
+
+func (res User) IsEmpty() bool {
+	return cmp.Equal(res, User{})
 }

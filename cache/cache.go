@@ -33,18 +33,17 @@ func Set(key string, value interface{}) {
 	logger.Info("Cache is set for key: %s", key)
 }
 
-func Get(key string) interface{} {
+func Get(key string, result interface{}) *error {
 	logger.Info("Get cache for key: %s", key)
 	ctx := context.Background()
 	val, err := redisClient.Get(ctx, key).Result()
 	if err != nil {
 		return nil
 	}
-	var result interface{}
 	err = json.Unmarshal([]byte(val), &result)
 	if err != nil {
-		panic(err)
+		return &err
 	}
 	logger.Info("Cache is get for key: %s", key)
-	return result
+	return nil
 }

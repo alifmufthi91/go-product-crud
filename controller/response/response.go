@@ -19,7 +19,7 @@ func Success(c *gin.Context, data interface{}, isFromCache bool) {
 }
 
 func Fail(c *gin.Context, err string) {
-	respond(c, http.StatusInternalServerError, Response{Message: "Internal Error", Error: err, Status: http.StatusInternalServerError})
+	respond(c, http.StatusInternalServerError, Response{Message: err, Error: "Internal Server Error", Status: http.StatusInternalServerError})
 }
 
 func respond(c *gin.Context, code int, payload interface{}) {

@@ -1,6 +1,10 @@
 package app
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/google/go-cmp/cmp"
+)
 
 type Product struct {
 	ID                 uint   `json:"product_id"`
@@ -13,4 +17,8 @@ type Product struct {
 
 func (res Product) MarshalBinary() ([]byte, error) {
 	return json.Marshal(res)
+}
+
+func (res Product) IsEmpty() bool {
+	return cmp.Equal(res, Product{})
 }

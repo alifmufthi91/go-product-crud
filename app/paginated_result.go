@@ -1,6 +1,10 @@
 package app
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/google/go-cmp/cmp"
+)
 
 type PaginatedResult struct {
 	Items      interface{} `json:"items"`
@@ -12,4 +16,8 @@ type PaginatedResult struct {
 
 func (res PaginatedResult) MarshalBinary() ([]byte, error) {
 	return json.Marshal(res)
+}
+
+func (res PaginatedResult) IsEmpty() bool {
+	return cmp.Equal(res, PaginatedResult{})
 }

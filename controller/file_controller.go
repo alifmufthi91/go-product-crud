@@ -27,13 +27,8 @@ func NewFileController() *fileController {
 }
 
 func (fc fileController) Upload(c *gin.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("Recovered from panic: %+v", r)
-			response.Fail(c, "Internal Server Error")
-			return
-		}
-	}()
+	defer response.ErrorHandling(c)
+
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
 		panic(err)
@@ -64,13 +59,8 @@ func (fc fileController) Upload(c *gin.Context) {
 }
 
 func (fc fileController) Download(c *gin.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("Recovered from panic: %+v", r)
-			response.Fail(c, "Internal Server Error")
-			return
-		}
-	}()
+	defer response.ErrorHandling(c)
+
 	newpath := filepath.Join(config.Env.FilePath, "public")
 	filename := c.Param("name")
 	if _, err := os.Stat(newpath + "/" + filename); errors.Is(err, os.ErrNotExist) {

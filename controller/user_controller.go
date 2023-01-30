@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"product-crud/app"
 	"product-crud/cache"
 	"product-crud/controller/response"
 	"product-crud/service"
@@ -33,13 +34,7 @@ func NewUserController(userService service.UserService) *userController {
 }
 
 func (uc userController) GetAllUser(c *gin.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("Recovered from panic: %+v", r)
-			response.Fail(c, "Internal Server Error")
-			return
-		}
-	}()
+	defer response.ErrorHandling(c)
 
 	logger.Info("Get all user request")
 
@@ -47,20 +42,21 @@ func (uc userController) GetAllUser(c *gin.Context) {
 	hash := util.HashFromStruct(pagination)
 	key := "GetAllUser:all:" + hash
 
-	var cached interface{}
+	var users = app.PaginatedResult{}
 	if c.DefaultQuery("no_cache", "0") == "0" {
-		cached = cache.Get(key)
+		err := cache.Get(key, &users)
+		if err != nil {
+			panic(err)
+		}
 	}
-	var users interface{}
 	isFromCache := false
-	if cached != nil {
+	if !users.IsEmpty() {
 		logger.Info("Getting from cache")
-		users = cached
 		isFromCache = true
 	} else {
-		users = uc.userService.GetAll(&pagination)
+		users = *uc.userService.GetAll(&pagination)
 	}
-	if cached == nil {
+	if !isFromCache {
 		cache.Set(key, users)
 	}
 	logger.Info("Get all user success")
@@ -68,13 +64,7 @@ func (uc userController) GetAllUser(c *gin.Context) {
 }
 
 func (uc userController) GetUserById(c *gin.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("Recovered from panic: %+v", r)
-			response.Fail(c, "Internal Server Error")
-			return
-		}
-	}()
+	defer response.ErrorHandling(c)
 
 	logger.Info(`Get user by id, id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
@@ -85,21 +75,22 @@ func (uc userController) GetUserById(c *gin.Context) {
 
 	key := "GetUserById:" + c.Param("id")
 
-	var cached interface{}
+	var user = app.User{}
 	if c.DefaultQuery("no_cache", "0") == "0" {
-		cached = cache.Get(key)
+		err := cache.Get(key, &user)
+		if err != nil {
+			panic(err)
+		}
 	}
 
-	var user interface{}
 	isFromCache := false
-	if cached != nil {
+	if !user.IsEmpty() {
 		logger.Info("Getting from cache")
-		user = cached
 		isFromCache = true
 	} else {
-		user = uc.userService.GetById(uint(id))
+		user = *uc.userService.GetById(uint(id))
 	}
-	if cached == nil {
+	if !isFromCache {
 		cache.Set(key, user)
 	}
 
@@ -108,13 +99,8 @@ func (uc userController) GetUserById(c *gin.Context) {
 }
 
 func (uc userController) RegisterUser(c *gin.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("Recovered from panic: %+v", r)
-			response.Fail(c, "Internal Server Error")
-			return
-		}
-	}()
+	defer response.ErrorHandling(c)
+
 	logger.Info(`Register new user request`)
 	var input validation.RegisterUser
 	err := json.NewDecoder(c.Request.Body).Decode(&input)
@@ -134,13 +120,8 @@ func (uc userController) RegisterUser(c *gin.Context) {
 }
 
 func (uc userController) LoginUser(c *gin.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("Recovered from panic: %+v", r)
-			response.Fail(c, "Internal Server Error")
-			return
-		}
-	}()
+	defer response.ErrorHandling(c)
+
 	logger.Info(`Login User request`)
 	var input validation.LoginUser
 	err := json.NewDecoder(c.Request.Body).Decode(&input)
