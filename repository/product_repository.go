@@ -2,7 +2,6 @@ package repository
 
 import (
 	"product-crud/app"
-	"product-crud/database"
 	"product-crud/models"
 	"product-crud/util/logger"
 
@@ -22,11 +21,10 @@ type ProductRepository interface {
 	DeleteProduct(productId uint)
 }
 
-func NewProductRepository() *productRepository {
+func NewProductRepository(db *gorm.DB) *productRepository {
 	logger.Info("Initializing product repository..")
-	dbconn := database.DBConnection()
 	return &productRepository{
-		DB: dbconn,
+		DB: db,
 	}
 }
 

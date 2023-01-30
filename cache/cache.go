@@ -3,7 +3,6 @@ package cache
 import (
 	"context"
 	"encoding/json"
-	"product-crud/database"
 	"product-crud/util/logger"
 	"time"
 
@@ -19,8 +18,8 @@ var (
 	redisClient *redis.Client
 )
 
-func Init() {
-	redisClient = database.RedisConnection()
+func NewCache(redis *redis.Client) {
+	redisClient = redis
 }
 
 func Set(key string, value interface{}) {

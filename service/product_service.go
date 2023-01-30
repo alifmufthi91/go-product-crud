@@ -72,7 +72,6 @@ func (ps productService) AddProduct(productInput validation.AddProduct, userId u
 	}
 	createdProduct := ps.productRepository.AddProduct(product)
 
-	logger.Info(`product data = %+v`, createdProduct)
 	productData := createdProduct.ProductToProduct()
 	return &productData
 }
@@ -88,7 +87,6 @@ func (ps productService) UpdateProduct(productId uint, productInput validation.U
 	product.Photo = productInput.Photo
 	updatedProduct := ps.productRepository.UpdateProduct(*product)
 
-	logger.Info(`product data = %+v`, updatedProduct)
 	productData := updatedProduct.ProductToProduct()
 	return &productData
 }

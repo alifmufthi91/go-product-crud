@@ -2,8 +2,6 @@ package database
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"product-crud/config"
 	"sync"
 	"time"
@@ -22,7 +20,7 @@ var (
 
 func DBConnection() *gorm.DB {
 	newLogger := gormLogger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.InfoLogger, // io writer
 		gormLogger.Config{
 			SlowThreshold:             time.Second,     // Slow SQL threshold
 			LogLevel:                  gormLogger.Info, // Log level

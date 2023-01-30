@@ -2,7 +2,6 @@ package repository
 
 import (
 	"product-crud/app"
-	"product-crud/database"
 	"product-crud/models"
 	"product-crud/util/logger"
 
@@ -22,11 +21,10 @@ type UserRepository interface {
 	IsExistingEmail(email string) *bool
 }
 
-func NewUserRepository() *userRepository {
+func NewUserRepository(db *gorm.DB) *userRepository {
 	logger.Info("Initializing user repository..")
-	dbconn := database.DBConnection()
 	return &userRepository{
-		DB: dbconn,
+		DB: db,
 	}
 }
 

@@ -8,20 +8,22 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func NewRouter() *gin.Engine {
+func NewRouter(
+	db *gorm.DB,
+	userRepository repository.UserRepository,
+	productRepository repository.ProductRepository,
+	userService service.UserService,
+	productService service.ProductService,
+) *gin.Engine {
 
 	router := gin.New()
 
 	router.Use(gin.Recovery())
 	router.Use(gin.Logger())
 	router.Use(cors.Default())
-
-	userRepository := repository.NewUserRepository()
-	productRepository := repository.NewProductRepository()
-	userService := service.NewUserService(userRepository)
-	productService := service.NewProductService(productRepository, userRepository)
 
 	api := router.Group("api")
 	{
