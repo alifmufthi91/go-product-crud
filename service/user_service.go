@@ -18,7 +18,7 @@ import (
 )
 
 type UserService interface {
-	GetAll(pagination *app.Pagination) *app.PaginatedResult
+	GetAll(pagination *app.Pagination) *app.PaginatedResult[app.User]
 	GetById(userId uint) *app.User
 	Register(userInput validation.RegisterUser) *app.User
 	Login(userInput validation.LoginUser) *string
@@ -35,7 +35,7 @@ func NewUserService(userRepository repository.UserRepository) *userService {
 	}
 }
 
-func (us userService) GetAll(pagination *app.Pagination) *app.PaginatedResult {
+func (us userService) GetAll(pagination *app.Pagination) *app.PaginatedResult[app.User] {
 	logger.Info("Getting all user from repository")
 	var count int64
 	users := us.userRepository.GetAllUser(pagination, &count)
@@ -43,7 +43,7 @@ func (us userService) GetAll(pagination *app.Pagination) *app.PaginatedResult {
 	for _, x := range users {
 		userDatas = append(userDatas, x.UserToUser())
 	}
-	paginatedResult := app.PaginatedResult{
+	paginatedResult := app.PaginatedResult[app.User]{
 		Items:      userDatas,
 		Page:       pagination.Page,
 		Size:       len(userDatas),

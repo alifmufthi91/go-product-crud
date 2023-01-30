@@ -44,7 +44,7 @@ func (pc productController) GetAllProduct(c *gin.Context) {
 	hash := util.HashFromStruct(pagination)
 	key := "GetAllProduct:all:" + hash
 
-	var products = app.PaginatedResult{}
+	var products = app.PaginatedResult[app.Product]{}
 	if c.DefaultQuery("no_cache", "0") == "0" {
 		err := cache.Get(key, &products)
 		if err != nil {

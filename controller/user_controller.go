@@ -42,7 +42,7 @@ func (uc userController) GetAllUser(c *gin.Context) {
 	hash := util.HashFromStruct(pagination)
 	key := "GetAllUser:all:" + hash
 
-	var users = app.PaginatedResult{}
+	var users = app.PaginatedResult[app.User]{}
 	if c.DefaultQuery("no_cache", "0") == "0" {
 		err := cache.Get(key, &users)
 		if err != nil {

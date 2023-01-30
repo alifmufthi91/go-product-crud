@@ -6,18 +6,18 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-type PaginatedResult struct {
-	Items      interface{} `json:"items"`
-	Page       int         `json:"page"`
-	Size       int         `json:"size"`
-	TotalItems int         `json:"total_items"`
-	TotalPage  int         `json:"total_pages"`
+type PaginatedResult[i any] struct {
+	Items      []i `json:"items"`
+	Page       int `json:"page"`
+	Size       int `json:"size"`
+	TotalItems int `json:"total_items"`
+	TotalPage  int `json:"total_pages"`
 }
 
-func (res PaginatedResult) MarshalBinary() ([]byte, error) {
+func (res PaginatedResult[i]) MarshalBinary() ([]byte, error) {
 	return json.Marshal(res)
 }
 
-func (res PaginatedResult) IsEmpty() bool {
-	return cmp.Equal(res, PaginatedResult{})
+func (res PaginatedResult[i]) IsEmpty() bool {
+	return cmp.Equal(res, PaginatedResult[i]{})
 }

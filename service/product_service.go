@@ -11,7 +11,7 @@ import (
 )
 
 type ProductService interface {
-	GetAll(pagination *app.Pagination) *app.PaginatedResult
+	GetAll(pagination *app.Pagination) *app.PaginatedResult[app.Product]
 	GetById(productId uint) *app.Product
 	AddProduct(productInput validation.AddProduct, userId uint) *app.Product
 	UpdateProduct(productId uint, productInput validation.UpdateProduct, userId uint) *app.Product
@@ -31,7 +31,7 @@ func NewProductService(productRepository repository.ProductRepository, userRepos
 	}
 }
 
-func (ps productService) GetAll(pagination *app.Pagination) *app.PaginatedResult {
+func (ps productService) GetAll(pagination *app.Pagination) *app.PaginatedResult[app.Product] {
 	logger.Info("Getting all product from repository")
 	var count int64
 	products := ps.productRepository.GetAllProduct(pagination, &count)
@@ -42,7 +42,7 @@ func (ps productService) GetAll(pagination *app.Pagination) *app.PaginatedResult
 		productDatas = append(productDatas, x.ProductToProduct())
 	}
 
-	paginatedResult := app.PaginatedResult{
+	paginatedResult := app.PaginatedResult[app.Product]{
 		Items:      productDatas,
 		Page:       pagination.Page,
 		Size:       len(productDatas),
