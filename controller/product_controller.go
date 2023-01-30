@@ -58,8 +58,6 @@ func (pc productController) GetAllProduct(c *gin.Context) {
 		isFromCache = true
 	} else {
 		products = *pc.productService.GetAll(&pagination)
-	}
-	if !isFromCache {
 		cache.Set(key, products)
 	}
 
@@ -92,8 +90,6 @@ func (pc productController) GetProductById(c *gin.Context) {
 		isFromCache = true
 	} else {
 		product = *pc.productService.GetById(uint(id))
-	}
-	if !isFromCache {
 		cache.Set(key, product)
 	}
 

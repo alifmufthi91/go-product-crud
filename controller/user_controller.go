@@ -55,8 +55,6 @@ func (uc userController) GetAllUser(c *gin.Context) {
 		isFromCache = true
 	} else {
 		users = *uc.userService.GetAll(&pagination)
-	}
-	if !isFromCache {
 		cache.Set(key, users)
 	}
 	logger.Info("Get all user success")
@@ -89,8 +87,6 @@ func (uc userController) GetUserById(c *gin.Context) {
 		isFromCache = true
 	} else {
 		user = *uc.userService.GetById(uint(id))
-	}
-	if !isFromCache {
 		cache.Set(key, user)
 	}
 
