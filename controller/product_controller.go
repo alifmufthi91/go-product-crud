@@ -54,7 +54,6 @@ func (pc productController) GetAllProduct(c *gin.Context) {
 
 	isFromCache := false
 	if !products.IsEmpty() {
-		logger.Info("Getting from cache")
 		isFromCache = true
 	} else {
 		products = *pc.productService.GetAll(&pagination)
@@ -86,7 +85,6 @@ func (pc productController) GetProductById(c *gin.Context) {
 
 	isFromCache := false
 	if !product.IsEmpty() {
-		logger.Info("Getting from cache")
 		isFromCache = true
 	} else {
 		product = *pc.productService.GetById(uint(id))
