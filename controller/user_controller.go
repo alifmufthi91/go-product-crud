@@ -10,30 +10,35 @@ import (
 	"product-crud/util/logger"
 	"product-crud/validation"
 	"strconv"
+	"sync/atomic"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
 
-type UserController interface {
+type IUserController interface {
 	GetAllUser(c *gin.Context)
 	GetUserById(c *gin.Context)
 	RegisterUser(c *gin.Context)
 	LoginUser(c *gin.Context)
+	GetAllUserRequestCounter(c *gin.Context)
 }
 
-type userController struct {
-	userService service.UserService
+type UserController struct {
+	userService service.IUserService
 }
 
-func NewUserController(userService service.UserService) *userController {
+var getAllUserRequestCalled uint64
+
+func NewUserController(userService service.IUserService) UserController {
 	logger.Info("Initializing user controller..")
-	return &userController{
+	return UserController{
 		userService: userService,
 	}
 }
 
-func (uc userController) GetAllUser(c *gin.Context) {
+func (uc UserController) GetAllUser(c *gin.Context) {
+	atomic.AddUint64(&getAllUserRequestCalled, 1)
 	defer response.ErrorHandling(c)
 
 	logger.Info("Get all user request")
@@ -60,7 +65,7 @@ func (uc userController) GetAllUser(c *gin.Context) {
 	response.Success(c, users, isFromCache)
 }
 
-func (uc userController) GetUserById(c *gin.Context) {
+func (uc UserController) GetUserById(c *gin.Context) {
 	defer response.ErrorHandling(c)
 
 	logger.Info(`Get user by id, id = %s`, c.Param("id"))
@@ -92,7 +97,7 @@ func (uc userController) GetUserById(c *gin.Context) {
 	response.Success(c, user, isFromCache)
 }
 
-func (uc userController) RegisterUser(c *gin.Context) {
+func (uc UserController) RegisterUser(c *gin.Context) {
 	defer response.ErrorHandling(c)
 
 	logger.Info(`Register new user request`)
@@ -113,7 +118,7 @@ func (uc userController) RegisterUser(c *gin.Context) {
 	response.Success(c, user, false)
 }
 
-func (uc userController) LoginUser(c *gin.Context) {
+func (uc UserController) LoginUser(c *gin.Context) {
 	defer response.ErrorHandling(c)
 
 	logger.Info(`Login User request`)
@@ -133,4 +138,8 @@ func (uc userController) LoginUser(c *gin.Context) {
 	response.Success(c, user, false)
 }
 
-var _ UserController = (*userController)(nil)
+func (uc UserController) GetAllUserRequestCounter(c *gin.Context) {
+	defer response.ErrorHandling(c)
+
+	response.Success(c, atomic.LoadUint64(&getAllUserRequestCalled), false)
+}

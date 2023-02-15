@@ -17,25 +17,25 @@ import (
 	jwt "github.com/golang-jwt/jwt"
 )
 
-type UserService interface {
+type IUserService interface {
 	GetAll(pagination *app.Pagination) *app.PaginatedResult[app.User]
 	GetById(userId uint) *app.User
 	Register(userInput validation.RegisterUser) *app.User
 	Login(userInput validation.LoginUser) *string
 }
 
-type userService struct {
-	userRepository repository.UserRepository
+type UserService struct {
+	userRepository repository.IUserRepository
 }
 
-func NewUserService(userRepository repository.UserRepository) *userService {
+func NewUserService(userRepository repository.IUserRepository) UserService {
 	logger.Info("Initializing user service..")
-	return &userService{
+	return UserService{
 		userRepository: userRepository,
 	}
 }
 
-func (us userService) GetAll(pagination *app.Pagination) *app.PaginatedResult[app.User] {
+func (us UserService) GetAll(pagination *app.Pagination) *app.PaginatedResult[app.User] {
 	logger.Info("Getting all user from repository")
 	var count int64
 	users := us.userRepository.GetAllUser(pagination, &count)
@@ -54,14 +54,14 @@ func (us userService) GetAll(pagination *app.Pagination) *app.PaginatedResult[ap
 	return &paginatedResult
 }
 
-func (us userService) GetById(userId uint) *app.User {
+func (us UserService) GetById(userId uint) *app.User {
 	logger.Info("Getting user from repository")
 	user := us.userRepository.GetByUserId(userId)
 	userData := user.UserToUser()
 	return &userData
 }
 
-func (us userService) Register(userInput validation.RegisterUser) *app.User {
+func (us UserService) Register(userInput validation.RegisterUser) *app.User {
 	logger.Info(`Registering new user, user = %+v`, userInput)
 	existing := us.userRepository.IsExistingEmail(userInput.Email)
 	if *existing {
@@ -82,7 +82,7 @@ func (us userService) Register(userInput validation.RegisterUser) *app.User {
 	return &userData
 }
 
-func (us userService) Login(userInput validation.LoginUser) *string {
+func (us UserService) Login(userInput validation.LoginUser) *string {
 	logger.Info(`Login user by email, email = %s`, userInput.Email)
 	user := us.userRepository.GetByEmail(userInput.Email)
 
@@ -112,4 +112,4 @@ func (us userService) Login(userInput validation.LoginUser) *string {
 	return &token
 }
 
-var _ UserService = (*userService)(nil)
+var _ IUserService = (*UserService)(nil)

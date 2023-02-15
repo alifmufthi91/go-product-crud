@@ -13,20 +13,20 @@ import (
 	"github.com/google/uuid"
 )
 
-type FileController interface {
+type IFileController interface {
 	Upload(c *gin.Context)
 	Download(c *gin.Context)
 }
 
-type fileController struct {
+type FileController struct {
 }
 
-func NewFileController() *fileController {
+func NewFileController() FileController {
 	logger.Info("Initializing file controller..")
-	return &fileController{}
+	return FileController{}
 }
 
-func (fc fileController) Upload(c *gin.Context) {
+func (fc FileController) Upload(c *gin.Context) {
 	defer response.ErrorHandling(c)
 
 	file, header, err := c.Request.FormFile("file")
@@ -58,7 +58,7 @@ func (fc fileController) Upload(c *gin.Context) {
 	response.Success(c, filepath, false)
 }
 
-func (fc fileController) Download(c *gin.Context) {
+func (fc FileController) Download(c *gin.Context) {
 	defer response.ErrorHandling(c)
 
 	newpath := filepath.Join(config.Env.FilePath, "public")
@@ -70,4 +70,4 @@ func (fc fileController) Download(c *gin.Context) {
 
 }
 
-var _ FileController = (*fileController)(nil)
+var _ IFileController = (*FileController)(nil)

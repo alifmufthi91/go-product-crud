@@ -10,7 +10,7 @@ import (
 	"product-crud/validation"
 )
 
-type ProductService interface {
+type IProductService interface {
 	GetAll(pagination *app.Pagination) *app.PaginatedResult[app.Product]
 	GetById(productId uint) *app.Product
 	AddProduct(productInput validation.AddProduct, userId uint) *app.Product
@@ -18,20 +18,20 @@ type ProductService interface {
 	DeleteProduct(productId uint, userId uint)
 }
 
-type productService struct {
-	productRepository repository.ProductRepository
-	userRepository    repository.UserRepository
+type ProductService struct {
+	productRepository repository.IProductRepository
+	userRepository    repository.IUserRepository
 }
 
-func NewProductService(productRepository repository.ProductRepository, userRepository repository.UserRepository) *productService {
+func NewProductService(productRepository repository.IProductRepository, userRepository repository.IUserRepository) ProductService {
 	logger.Info("Initializing product service..")
-	return &productService{
+	return ProductService{
 		productRepository: productRepository,
 		userRepository:    userRepository,
 	}
 }
 
-func (ps productService) GetAll(pagination *app.Pagination) *app.PaginatedResult[app.Product] {
+func (ps ProductService) GetAll(pagination *app.Pagination) *app.PaginatedResult[app.Product] {
 	logger.Info("Getting all product from repository")
 	var count int64
 	products := ps.productRepository.GetAllProduct(pagination, &count)
@@ -53,14 +53,14 @@ func (ps productService) GetAll(pagination *app.Pagination) *app.PaginatedResult
 	return &paginatedResult
 }
 
-func (ps productService) GetById(productId uint) *app.Product {
+func (ps ProductService) GetById(productId uint) *app.Product {
 	logger.Info("Getting product from repository")
 	product := ps.productRepository.GetByProductId(productId)
 	productData := product.ProductToProduct()
 	return &productData
 }
 
-func (ps productService) AddProduct(productInput validation.AddProduct, userId uint) *app.Product {
+func (ps ProductService) AddProduct(productInput validation.AddProduct, userId uint) *app.Product {
 	logger.Info(`Adding new product, product = %+v, user_id = %+v`, productInput, userId)
 	user := ps.userRepository.GetByUserId(userId)
 
@@ -76,7 +76,7 @@ func (ps productService) AddProduct(productInput validation.AddProduct, userId u
 	return &productData
 }
 
-func (ps productService) UpdateProduct(productId uint, productInput validation.UpdateProduct, userId uint) *app.Product {
+func (ps ProductService) UpdateProduct(productId uint, productInput validation.UpdateProduct, userId uint) *app.Product {
 	logger.Info(`Updating product, product = %+v, user_id = %d`, productInput, userId)
 	product := ps.productRepository.GetByProductId(productId)
 	if product.UploaderId != userId {
@@ -91,7 +91,7 @@ func (ps productService) UpdateProduct(productId uint, productInput validation.U
 	return &productData
 }
 
-func (ps productService) DeleteProduct(productId uint, userId uint) {
+func (ps ProductService) DeleteProduct(productId uint, userId uint) {
 	logger.Info(`Deleting product, product_id = %d, user_id = %d`, productId, userId)
 	product := ps.productRepository.GetByProductId(productId)
 	if product.UploaderId != userId {
@@ -100,4 +100,4 @@ func (ps productService) DeleteProduct(productId uint, userId uint) {
 	ps.productRepository.DeleteProduct(productId)
 }
 
-var _ ProductService = (*productService)(nil)
+var _ IProductService = (*ProductService)(nil)

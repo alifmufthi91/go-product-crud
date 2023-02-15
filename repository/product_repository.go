@@ -9,11 +9,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-type productRepository struct {
-	*gorm.DB
-}
-
-type ProductRepository interface {
+type IProductRepository interface {
 	GetAllProduct(pagination *app.Pagination, count *int64) []*models.Product
 	GetByProductId(productId uint) *models.Product
 	AddProduct(product models.Product) *models.Product
@@ -21,14 +17,18 @@ type ProductRepository interface {
 	DeleteProduct(productId uint)
 }
 
-func NewProductRepository(db *gorm.DB) *productRepository {
+type ProductRepository struct {
+	*gorm.DB
+}
+
+func NewProductRepository(db *gorm.DB) ProductRepository {
 	logger.Info("Initializing product repository..")
-	return &productRepository{
+	return ProductRepository{
 		DB: db,
 	}
 }
 
-func (repo productRepository) GetAllProduct(pagination *app.Pagination, count *int64) []*models.Product {
+func (repo ProductRepository) GetAllProduct(pagination *app.Pagination, count *int64) []*models.Product {
 	products := []*models.Product{}
 	offset := (pagination.Page - 1) * pagination.Limit
 	queryBuilder := repo.Preload(clause.Associations).Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
@@ -40,7 +40,7 @@ func (repo productRepository) GetAllProduct(pagination *app.Pagination, count *i
 	return products
 }
 
-func (repo productRepository) GetByProductId(id uint) *models.Product {
+func (repo ProductRepository) GetByProductId(id uint) *models.Product {
 	product := models.Product{}
 	result := repo.Preload(clause.Associations).First(&product, "id = ?", id)
 	if result.Error != nil {
@@ -50,7 +50,7 @@ func (repo productRepository) GetByProductId(id uint) *models.Product {
 	return &product
 }
 
-func (repo productRepository) AddProduct(product models.Product) *models.Product {
+func (repo ProductRepository) AddProduct(product models.Product) *models.Product {
 	result := repo.Create(&product)
 	if result.Error != nil {
 		panic(result.Error)
@@ -62,7 +62,7 @@ func (repo productRepository) AddProduct(product models.Product) *models.Product
 	return &product
 }
 
-func (repo productRepository) UpdateProduct(product models.Product) *models.Product {
+func (repo ProductRepository) UpdateProduct(product models.Product) *models.Product {
 	result := repo.Updates(&product)
 	if result.Error != nil {
 		panic(result.Error)
@@ -74,11 +74,11 @@ func (repo productRepository) UpdateProduct(product models.Product) *models.Prod
 	return &product
 }
 
-func (repo productRepository) DeleteProduct(productId uint) {
+func (repo ProductRepository) DeleteProduct(productId uint) {
 	result := repo.Delete(&models.Product{}, productId)
 	if result.Error != nil {
 		panic(result.Error)
 	}
 }
 
-var _ ProductRepository = (*productRepository)(nil)
+var _ IProductRepository = (*ProductRepository)(nil)

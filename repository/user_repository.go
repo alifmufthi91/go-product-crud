@@ -9,11 +9,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-type userRepository struct {
-	*gorm.DB
-}
-
-type UserRepository interface {
+type IUserRepository interface {
 	GetAllUser(pagination *app.Pagination, count *int64) []*models.User
 	GetByUserId(userId uint) *models.User
 	GetByEmail(email string) *models.User
@@ -21,14 +17,18 @@ type UserRepository interface {
 	IsExistingEmail(email string) *bool
 }
 
-func NewUserRepository(db *gorm.DB) *userRepository {
+type UserRepository struct {
+	*gorm.DB
+}
+
+func NewUserRepository(db *gorm.DB) UserRepository {
 	logger.Info("Initializing user repository..")
-	return &userRepository{
+	return UserRepository{
 		DB: db,
 	}
 }
 
-func (repo userRepository) GetAllUser(pagination *app.Pagination, count *int64) []*models.User {
+func (repo UserRepository) GetAllUser(pagination *app.Pagination, count *int64) []*models.User {
 	users := []*models.User{}
 	offset := (pagination.Page - 1) * pagination.Limit
 	queryBuilder := repo.Preload("Products.Uploader").Preload(clause.Associations).Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
@@ -40,7 +40,7 @@ func (repo userRepository) GetAllUser(pagination *app.Pagination, count *int64) 
 	return users
 }
 
-func (repo userRepository) GetByUserId(id uint) *models.User {
+func (repo UserRepository) GetByUserId(id uint) *models.User {
 	user := models.User{}
 	result := repo.Preload("Products.Uploader").Preload(clause.Associations).First(&user, "users.id = ?", id)
 	if result.Error != nil {
@@ -50,7 +50,7 @@ func (repo userRepository) GetByUserId(id uint) *models.User {
 	return &user
 }
 
-func (repo userRepository) GetByEmail(email string) *models.User {
+func (repo UserRepository) GetByEmail(email string) *models.User {
 	user := models.User{}
 	result := repo.Preload(clause.Associations).First(&user, "email = ?", email)
 	if result.Error != nil {
@@ -60,7 +60,7 @@ func (repo userRepository) GetByEmail(email string) *models.User {
 	return &user
 }
 
-func (repo userRepository) IsExistingEmail(email string) *bool {
+func (repo UserRepository) IsExistingEmail(email string) *bool {
 	var exists bool
 	err := repo.Model(models.User{}).Select("count(*) > 0").Where("email = ?", email).Find(&exists).Error
 	if err != nil {
@@ -69,7 +69,7 @@ func (repo userRepository) IsExistingEmail(email string) *bool {
 	return &exists
 }
 
-func (repo userRepository) AddUser(user models.User) *models.User {
+func (repo UserRepository) AddUser(user models.User) *models.User {
 	result := repo.Create(&user)
 	if result.Error != nil {
 		panic(result.Error)
@@ -78,4 +78,4 @@ func (repo userRepository) AddUser(user models.User) *models.User {
 	return &user
 }
 
-var _ UserRepository = (*userRepository)(nil)
+var _ IUserRepository = (*UserRepository)(nil)

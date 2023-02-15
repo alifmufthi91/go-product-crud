@@ -13,12 +13,12 @@ import (
 
 func NewRouter(
 	db *gorm.DB,
-	userRepository repository.UserRepository,
-	productRepository repository.ProductRepository,
-	userService service.UserService,
-	productService service.ProductService,
+	userRepository repository.IUserRepository,
+	productRepository repository.IProductRepository,
+	userService service.IUserService,
+	productService service.IProductService,
 ) *gin.Engine {
-
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
 	router.Use(gin.Recovery())
@@ -28,12 +28,14 @@ func NewRouter(
 	api := router.Group("api")
 	{
 		users := api.Group("users")
+		userRequest := api.Group("user-request")
 		userController := controller.NewUserController(userService)
 		{
 			users.GET("/", middlewares.Auth, userController.GetAllUser)
 			users.GET("/:id", middlewares.Auth, userController.GetUserById)
 			users.POST("/", userController.RegisterUser)
 			users.POST("/login", userController.LoginUser)
+			userRequest.GET("/get-all-users", userController.GetAllUserRequestCounter)
 		}
 		products := api.Group("products")
 		productController := controller.NewProductController(productService)

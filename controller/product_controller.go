@@ -16,7 +16,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type ProductController interface {
+type IProductController interface {
 	GetAllProduct(c *gin.Context)
 	GetProductById(c *gin.Context)
 	AddProduct(c *gin.Context)
@@ -24,18 +24,18 @@ type ProductController interface {
 	DeleteProduct(c *gin.Context)
 }
 
-type productController struct {
-	productService service.ProductService
+type ProductController struct {
+	productService service.IProductService
 }
 
-func NewProductController(productService service.ProductService) *productController {
+func NewProductController(productService service.IProductService) ProductController {
 	logger.Info("Initializing product controller..")
-	return &productController{
+	return ProductController{
 		productService: productService,
 	}
 }
 
-func (pc productController) GetAllProduct(c *gin.Context) {
+func (pc ProductController) GetAllProduct(c *gin.Context) {
 	defer response.ErrorHandling(c)
 
 	logger.Info("Get all product request")
@@ -64,7 +64,7 @@ func (pc productController) GetAllProduct(c *gin.Context) {
 	response.Success(c, products, isFromCache)
 }
 
-func (pc productController) GetProductById(c *gin.Context) {
+func (pc ProductController) GetProductById(c *gin.Context) {
 	defer response.ErrorHandling(c)
 
 	logger.Info(`Get product by id request, id = %s`, c.Param("id"))
@@ -95,7 +95,7 @@ func (pc productController) GetProductById(c *gin.Context) {
 	response.Success(c, product, isFromCache)
 }
 
-func (pc productController) AddProduct(c *gin.Context) {
+func (pc ProductController) AddProduct(c *gin.Context) {
 	defer response.ErrorHandling(c)
 
 	logger.Info(`Add new product request`)
@@ -121,7 +121,7 @@ func (pc productController) AddProduct(c *gin.Context) {
 	response.Success(c, product, false)
 }
 
-func (pc productController) UpdateProduct(c *gin.Context) {
+func (pc ProductController) UpdateProduct(c *gin.Context) {
 	defer response.ErrorHandling(c)
 
 	logger.Info(`Update product of id = %s`, c.Param("id"))
@@ -151,7 +151,7 @@ func (pc productController) UpdateProduct(c *gin.Context) {
 	response.Success(c, product, false)
 }
 
-func (pc productController) DeleteProduct(c *gin.Context) {
+func (pc ProductController) DeleteProduct(c *gin.Context) {
 	defer response.ErrorHandling(c)
 
 	logger.Info(`Delete product of id = %s`, c.Param("id"))
@@ -170,4 +170,4 @@ func (pc productController) DeleteProduct(c *gin.Context) {
 	response.Success(c, nil, false)
 }
 
-var _ ProductController = (*productController)(nil)
+var _ IProductController = (*ProductController)(nil)
