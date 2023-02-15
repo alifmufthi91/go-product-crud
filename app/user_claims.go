@@ -2,7 +2,7 @@ package app
 
 import "github.com/golang-jwt/jwt"
 
-type MyCustomClaims struct {
+type UserClaims struct {
 	UserId    uint   `json:"user_id"`
 	Email     string `json:"email"`
 	FirstName string `json:"first_name"`

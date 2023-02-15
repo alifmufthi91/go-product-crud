@@ -30,7 +30,7 @@ type Environment struct {
 	RedisPassword string `envconfig:"REDIS_PASSWORD"`
 }
 
-func EnvInit() {
+func InitEnv() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")

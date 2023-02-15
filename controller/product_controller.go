@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
-	"errors"
 	"product-crud/app"
 	"product-crud/cache"
 	"product-crud/controller/response"
@@ -13,7 +11,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 type IProductController interface {
@@ -100,20 +97,13 @@ func (pc ProductController) AddProduct(c *gin.Context) {
 
 	logger.Info(`Add new product request`)
 	var input validation.AddProduct
-	err := json.NewDecoder(c.Request.Body).Decode(&input)
+	err := c.ShouldBindJSON(&input)
 	if err != nil {
 		panic(err)
 	}
-	logger.Info(`Validating request, request = %+v`, input)
-	v := validator.New()
-	err = v.Struct(input)
+	user, err := util.GetUserClaims(c)
 	if err != nil {
 		panic(err)
-	}
-	userClaims, _ := c.Get("user")
-	user, ok := userClaims.(*app.MyCustomClaims)
-	if !ok {
-		panic(errors.New("userClaims type is not correct"))
 	}
 	product := pc.productService.AddProduct(input, user.UserId)
 
@@ -130,20 +120,13 @@ func (pc ProductController) UpdateProduct(c *gin.Context) {
 		panic(err)
 	}
 	var input validation.UpdateProduct
-	err = json.NewDecoder(c.Request.Body).Decode(&input)
+	err = c.ShouldBindJSON(&input)
 	if err != nil {
 		panic(err)
 	}
-	logger.Info(`Validating request, request = %+v`, input)
-	v := validator.New()
-	err = v.Struct(input)
+	user, err := util.GetUserClaims(c)
 	if err != nil {
 		panic(err)
-	}
-	userClaims, _ := c.Get("user")
-	user, ok := userClaims.(*app.MyCustomClaims)
-	if !ok {
-		panic(errors.New("userClaims type is not correct"))
 	}
 	product := pc.productService.UpdateProduct(uint(id), input, user.UserId)
 
@@ -159,10 +142,9 @@ func (pc ProductController) DeleteProduct(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	userClaims, _ := c.Get("user")
-	user, ok := userClaims.(*app.MyCustomClaims)
-	if !ok {
-		panic(errors.New("userClaims type is not correct"))
+	user, err := util.GetUserClaims(c)
+	if err != nil {
+		panic(err)
 	}
 	pc.productService.DeleteProduct(uint(id), user.UserId)
 

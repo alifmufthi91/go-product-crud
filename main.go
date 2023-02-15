@@ -13,7 +13,7 @@ import (
 
 func main() {
 	logger.Init()
-	config.EnvInit()
+	config.InitEnv()
 
 	var env = config.GetEnv()
 
@@ -25,7 +25,7 @@ func main() {
 	userService := service.NewUserService(userRepository)
 	productService := service.NewProductService(productRepository, userRepository)
 
-	cache.NewCache(redis)
+	cache.InitCache(redis)
 
 	logger.Info("Starting server..")
 

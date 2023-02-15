@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"product-crud/app"
 	"product-crud/cache"
 	"product-crud/controller/response"
@@ -13,7 +12,6 @@ import (
 	"sync/atomic"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 type IUserController interface {
@@ -102,13 +100,7 @@ func (uc UserController) RegisterUser(c *gin.Context) {
 
 	logger.Info(`Register new user request`)
 	var input validation.RegisterUser
-	err := json.NewDecoder(c.Request.Body).Decode(&input)
-	if err != nil {
-		panic(err)
-	}
-	logger.Info(`Validating request, request = %+v`, input)
-	v := validator.New()
-	err = v.Struct(input)
+	err := c.ShouldBindJSON(&input)
 	if err != nil {
 		panic(err)
 	}
@@ -123,12 +115,7 @@ func (uc UserController) LoginUser(c *gin.Context) {
 
 	logger.Info(`Login User request`)
 	var input validation.LoginUser
-	err := json.NewDecoder(c.Request.Body).Decode(&input)
-	if err != nil {
-		panic(err)
-	}
-	v := validator.New()
-	err = v.Struct(input)
+	err := c.ShouldBindJSON(&input)
 	if err != nil {
 		panic(err)
 	}

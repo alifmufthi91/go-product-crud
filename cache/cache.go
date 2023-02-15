@@ -18,7 +18,7 @@ var (
 	redisClient *redis.Client
 )
 
-func NewCache(redis *redis.Client) {
+func InitCache(redis *redis.Client) {
 	redisClient = redis
 }
 

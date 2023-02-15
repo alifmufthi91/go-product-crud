@@ -94,7 +94,7 @@ func (us UserService) Login(userInput validation.LoginUser) *string {
 		panic(errors.New(`user Password is wrong`))
 	}
 
-	sign := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), app.MyCustomClaims{
+	sign := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), app.UserClaims{
 		UserId:    user.ID,
 		Email:     user.Email,
 		FirstName: user.FirstName,

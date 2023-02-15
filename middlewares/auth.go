@@ -26,7 +26,7 @@ func Auth(c *gin.Context) {
 	}
 
 	tokenString := strings.Replace(authHeader, "Bearer ", "", -1)
-	token, err := jwt.ParseWithClaims(tokenString, &app.MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &app.UserClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if jwt.GetSigningMethod("HS256") != token.Method {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -35,7 +35,7 @@ func Auth(c *gin.Context) {
 	})
 
 	if token != nil && err == nil {
-		claims, _ := token.Claims.(*app.MyCustomClaims)
+		claims, _ := token.Claims.(*app.UserClaims)
 		c.Set("user", claims)
 		logger.Info(`token verified, claims = %+v`, claims)
 	} else {
