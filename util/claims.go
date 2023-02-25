@@ -2,7 +2,7 @@ package util
 
 import (
 	"errors"
-	"product-crud/app"
+	"product-crud/dto/app"
 
 	"github.com/gin-gonic/gin"
 )

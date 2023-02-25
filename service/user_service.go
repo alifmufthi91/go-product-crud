@@ -2,26 +2,28 @@ package service
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
-	"errors"
 	"fmt"
 	"math"
-	"product-crud/app"
 	"product-crud/config"
+	"product-crud/dto/app"
+	"product-crud/dto/request"
+	"product-crud/dto/response"
 	"product-crud/models"
 	"product-crud/repository"
+	errorUtil "product-crud/util/error"
 	"product-crud/util/logger"
-	"product-crud/validation"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt"
 )
 
 type IUserService interface {
-	GetAll(pagination *app.Pagination) *app.PaginatedResult[app.User]
-	GetById(userId uint) *app.User
-	Register(userInput validation.RegisterUser) *app.User
-	Login(userInput validation.LoginUser) *string
+	GetAll(pagination app.Pagination) app.PaginatedResult[response.GetUserResponse]
+	GetById(userId uint) response.GetUserResponse
+	Register(userInput request.UserRegisterRequest) response.GetUserResponse
+	Login(userInput request.UserLoginRequest) string
 }
 
 type UserService struct {
@@ -35,15 +37,23 @@ func NewUserService(userRepository repository.IUserRepository) UserService {
 	}
 }
 
-func (us UserService) GetAll(pagination *app.Pagination) *app.PaginatedResult[app.User] {
+func (us UserService) GetAll(pagination app.Pagination) app.PaginatedResult[response.GetUserResponse] {
 	logger.Info("Getting all user from repository")
 	var count int64
-	users := us.userRepository.GetAllUser(pagination, &count)
-	var userDatas []app.User
-	for _, x := range users {
-		userDatas = append(userDatas, x.UserToUser())
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	users, err := us.userRepository.GetAllUser(ctx, &pagination, &count)
+	if err != nil {
+		panic(err)
 	}
-	paginatedResult := app.PaginatedResult[app.User]{
+
+	var userDatas []response.GetUserResponse
+	for _, x := range users {
+		userDatas = append(userDatas, response.NewGetUserResponse(*x))
+	}
+	paginatedResult := app.PaginatedResult[response.GetUserResponse]{
 		Items:      userDatas,
 		Page:       pagination.Page,
 		Size:       len(userDatas),
@@ -51,22 +61,37 @@ func (us UserService) GetAll(pagination *app.Pagination) *app.PaginatedResult[ap
 		TotalPage:  int(math.Ceil(float64(count) / float64(pagination.Limit))),
 	}
 
-	return &paginatedResult
+	return paginatedResult
 }
 
-func (us UserService) GetById(userId uint) *app.User {
+func (us UserService) GetById(userId uint) response.GetUserResponse {
 	logger.Info("Getting user from repository")
-	user := us.userRepository.GetByUserId(userId)
-	userData := user.UserToUser()
-	return &userData
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	user, err := us.userRepository.GetByUserId(ctx, userId)
+	if err != nil {
+		panic(err)
+	}
+
+	return response.NewGetUserResponse(*user)
 }
 
-func (us UserService) Register(userInput validation.RegisterUser) *app.User {
+func (us UserService) Register(userInput request.UserRegisterRequest) response.GetUserResponse {
 	logger.Info(`Registering new user, user = %+v`, userInput)
-	existing := us.userRepository.IsExistingEmail(userInput.Email)
-	if *existing {
-		panic(errors.New("email is already exists"))
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	existing, err := us.userRepository.IsExistingEmail(ctx, userInput.Email)
+	if err != nil {
+		panic(err)
 	}
+	if *existing {
+		panic(errorUtil.ParamIllegal("email is already exists"))
+	}
+
 	bv := []byte(userInput.Password)
 	hasher := sha256.New()
 	hasher.Write(bv)
@@ -77,21 +102,30 @@ func (us UserService) Register(userInput validation.RegisterUser) *app.User {
 		Email:     userInput.Email,
 		Password:  bv,
 	}
-	createdUser := us.userRepository.AddUser(user)
-	userData := createdUser.UserToUser()
-	return &userData
+
+	createdUser, err := us.userRepository.AddUser(ctx, user)
+	if err != nil {
+		panic(err)
+	}
+	return response.NewGetUserResponse(*createdUser)
 }
 
-func (us UserService) Login(userInput validation.LoginUser) *string {
+func (us UserService) Login(userInput request.UserLoginRequest) string {
 	logger.Info(`Login user by email, email = %s`, userInput.Email)
-	user := us.userRepository.GetByEmail(userInput.Email)
 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	user, err := us.userRepository.GetByEmail(ctx, userInput.Email)
+	if err != nil {
+		panic(err)
+	}
 	bv := []byte(userInput.Password)
 	hasher := sha256.New()
 	hasher.Write(bv)
 
 	if !bytes.Equal(user.Password, bv) {
-		panic(errors.New(`user Password is wrong`))
+		panic(errorUtil.ParamIllegal("user password is incorrect"))
 	}
 
 	sign := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), app.UserClaims{
@@ -101,7 +135,7 @@ func (us UserService) Login(userInput validation.LoginUser) *string {
 		LastName:  user.LastName,
 		FullName:  fmt.Sprintf(`%s %s`, user.FirstName, user.LastName),
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 24 * 60).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * 999999).Unix(),
 			Issuer:    "test",
 		},
 	})
@@ -109,7 +143,7 @@ func (us UserService) Login(userInput validation.LoginUser) *string {
 	if err != nil {
 		panic(err)
 	}
-	return &token
+	return token
 }
 
 var _ IUserService = (*UserService)(nil)

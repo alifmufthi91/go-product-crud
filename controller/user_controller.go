@@ -1,15 +1,19 @@
 package controller
 
 import (
-	"product-crud/app"
+	"context"
 	"product-crud/cache"
-	"product-crud/controller/response"
+	ERROR_CONSTANT "product-crud/constant/error_constant"
+	"product-crud/dto/app"
+	"product-crud/dto/request"
+	resp "product-crud/dto/response"
 	"product-crud/service"
 	"product-crud/util"
 	"product-crud/util/logger"
-	"product-crud/validation"
+	responseUtil "product-crud/util/response"
 	"strconv"
 	"sync/atomic"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,7 +41,7 @@ func NewUserController(userService service.IUserService) UserController {
 
 func (uc UserController) GetAllUser(c *gin.Context) {
 	atomic.AddUint64(&getAllUserRequestCalled, 1)
-	defer response.ErrorHandling(c)
+	defer responseUtil.ErrorHandling(c)
 
 	logger.Info("Get all user request")
 
@@ -45,41 +49,55 @@ func (uc UserController) GetAllUser(c *gin.Context) {
 	hash := util.HashFromStruct(pagination)
 	key := "GetAllUser:all:" + hash
 
-	var users = app.PaginatedResult[app.User]{}
+	var users app.PaginatedResult[resp.GetUserResponse]
+	ctx, cancel := context.WithTimeout(c, 1*time.Second)
+	defer cancel()
 	if c.DefaultQuery("no_cache", "0") == "0" {
-		err := cache.Get(key, &users)
+		err := cache.Get(ctx, key, &users)
 		if err != nil {
-			panic(err)
+			logger.Error("Error : %v", err)
+			// panic(ERROR_CONSTANT.INTERNAL_ERROR)
 		}
 	}
 	isFromCache := false
 	if !users.IsEmpty() {
 		isFromCache = true
 	} else {
-		users = *uc.userService.GetAll(&pagination)
-		cache.Set(key, users)
+		users = uc.userService.GetAll(pagination)
+		go func() {
+			ctx, cancel := context.WithTimeout(c, 3*time.Second)
+			defer cancel()
+			err := cache.Set(ctx, key, users)
+			if err != nil {
+				logger.Error("Error : %v", err)
+			}
+		}()
 	}
 	logger.Info("Get all user success")
-	response.Success(c, users, isFromCache)
+	responseUtil.Ok(c, users, isFromCache)
 }
 
 func (uc UserController) GetUserById(c *gin.Context) {
-	defer response.ErrorHandling(c)
+	defer responseUtil.ErrorHandling(c)
 
 	logger.Info(`Get user by id, id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
-		panic(err)
+		logger.Error("Error : %v", err)
+		panic(ERROR_CONSTANT.INTERNAL_ERROR)
 	}
 
 	key := "GetUserById:" + c.Param("id")
 
-	var user = app.User{}
+	var user resp.GetUserResponse
+	ctx, cancel := context.WithTimeout(c, 1*time.Second)
+	defer cancel()
 	if c.DefaultQuery("no_cache", "0") == "0" {
-		err := cache.Get(key, &user)
+		err := cache.Get(ctx, key, &user)
 		if err != nil {
-			panic(err)
+			logger.Error("Error : %v", err)
+			// panic(ERROR_CONSTANT.INTERNAL_ERROR)
 		}
 	}
 
@@ -87,46 +105,53 @@ func (uc UserController) GetUserById(c *gin.Context) {
 	if !user.IsEmpty() {
 		isFromCache = true
 	} else {
-		user = *uc.userService.GetById(uint(id))
-		cache.Set(key, user)
+		user = uc.userService.GetById(uint(id))
+		go func() {
+			ctx, cancel := context.WithTimeout(c, 3*time.Second)
+			defer cancel()
+			err := cache.Set(ctx, key, user)
+			if err != nil {
+				logger.Error("Error : %v", err)
+			}
+		}()
 	}
 
 	logger.Info(`Get user by id, id = %s success`, c.Param("id"))
-	response.Success(c, user, isFromCache)
+	responseUtil.Ok(c, user, isFromCache)
 }
 
 func (uc UserController) RegisterUser(c *gin.Context) {
-	defer response.ErrorHandling(c)
+	defer responseUtil.ErrorHandling(c)
 
 	logger.Info(`Register new user request`)
-	var input validation.RegisterUser
-	err := c.ShouldBindJSON(&input)
+	var request request.UserRegisterRequest
+	err := c.ShouldBindJSON(&request)
 	if err != nil {
 		panic(err)
 	}
-	user := uc.userService.Register(input)
+	user := uc.userService.Register(request)
 
 	logger.Info(`Register new user success`)
-	response.Success(c, user, false)
+	responseUtil.Ok(c, user, false)
 }
 
 func (uc UserController) LoginUser(c *gin.Context) {
-	defer response.ErrorHandling(c)
+	defer responseUtil.ErrorHandling(c)
 
 	logger.Info(`Login User request`)
-	var input validation.LoginUser
-	err := c.ShouldBindJSON(&input)
+	var request request.UserLoginRequest
+	err := c.ShouldBindJSON(&request)
 	if err != nil {
 		panic(err)
 	}
-	user := uc.userService.Login(input)
+	user := uc.userService.Login(request)
 
 	logger.Info(`Login User success`)
-	response.Success(c, user, false)
+	responseUtil.Ok(c, user, false)
 }
 
 func (uc UserController) GetAllUserRequestCounter(c *gin.Context) {
-	defer response.ErrorHandling(c)
+	defer responseUtil.ErrorHandling(c)
 
-	response.Success(c, atomic.LoadUint64(&getAllUserRequestCalled), false)
+	responseUtil.Ok(c, atomic.LoadUint64(&getAllUserRequestCalled), false)
 }

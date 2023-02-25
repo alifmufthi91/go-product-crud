@@ -2,11 +2,11 @@ package middlewares
 
 import (
 	"fmt"
-	"net/http"
-	"product-crud/app"
 	"product-crud/config"
-	"product-crud/controller/response"
+	"product-crud/dto/app"
+	errorUtil "product-crud/util/error"
 	"product-crud/util/logger"
+	responseUtil "product-crud/util/response"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -16,12 +16,12 @@ import (
 func Auth(c *gin.Context) {
 	authHeader := c.Request.Header.Get("Authorization")
 	if !strings.Contains(authHeader, "Bearer") {
-		// result := gin.H{
-		// 	"message": "not authorized",
-		// }
-		respo := response.Response{Message: "Internal Error", Error: "UNAUTHORIZED", Status: http.StatusUnauthorized}
-		c.JSON(http.StatusUnauthorized, respo)
-		c.Abort()
+		err := errorUtil.Unauthorized("Internal Error")
+		responseUtil.Fail(c, app.ErrorHttpResponse{
+			Message:    err.Error(),
+			HttpStatus: err.HttpStatus,
+			ErrorName:  err.ErrorName,
+		})
 		return
 	}
 
@@ -39,14 +39,12 @@ func Auth(c *gin.Context) {
 		c.Set("user", claims)
 		logger.Info(`token verified, claims = %+v`, claims)
 	} else {
-		// result := gin.H{
-		// 	"message": "not authorized",
-		// 	"error":   err.Error(),
-		// }
-		// c.JSON(http.StatusUnauthorized, result)
-		respo := response.Response{Message: "Internal Error", Error: "UNAUTHORIZED", Status: http.StatusUnauthorized}
-		c.JSON(http.StatusUnauthorized, respo)
-		c.Abort()
+		err := errorUtil.Unauthorized("Not Authorized")
+		responseUtil.Fail(c, app.ErrorHttpResponse{
+			Message:    err.Error(),
+			HttpStatus: err.HttpStatus,
+			ErrorName:  err.ErrorName,
+		})
 	}
 
 }

@@ -1,9 +1,6 @@
 package models
 
 import (
-	"product-crud/app"
-
-	"github.com/google/go-cmp/cmp"
 	"gorm.io/gorm"
 )
 
@@ -14,19 +11,4 @@ type Product struct {
 	Photo              string `gorm:"type:varchar(100)"`
 	UploaderId         uint
 	Uploader           User `gorm:"foreignKey:UploaderId"`
-}
-
-func (p *Product) ProductToProduct() app.Product {
-	return app.Product{
-		ID:                 p.ID,
-		ProductName:        p.ProductName,
-		ProductDescription: p.ProductDescription,
-		Photo:              p.Photo,
-		UploaderId:         p.UploaderId,
-		Uploader:           p.Uploader.UserToUser(),
-	}
-}
-
-func (res Product) IsEmpty() bool {
-	return cmp.Equal(res, Product{})
 }
