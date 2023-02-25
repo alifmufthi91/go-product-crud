@@ -1,14 +1,18 @@
 package controller
 
 import (
+	"context"
 	"product-crud/app"
 	"product-crud/cache"
-	"product-crud/controller/response"
+	ERROR_CONSTANT "product-crud/constant"
+	"product-crud/dto/request"
+	resp "product-crud/dto/response"
 	"product-crud/service"
 	"product-crud/util"
 	"product-crud/util/logger"
-	"product-crud/validation"
+	responseUtil "product-crud/util/response"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,7 +37,7 @@ func NewProductController(productService service.IProductService) ProductControl
 }
 
 func (pc ProductController) GetAllProduct(c *gin.Context) {
-	defer response.ErrorHandling(c)
+	defer responseUtil.ErrorHandling(c)
 
 	logger.Info("Get all product request")
 	pagination := util.GeneratePaginationFromRequest(c)
@@ -41,11 +45,14 @@ func (pc ProductController) GetAllProduct(c *gin.Context) {
 	hash := util.HashFromStruct(pagination)
 	key := "GetAllProduct:all:" + hash
 
-	var products = app.PaginatedResult[app.Product]{}
+	var products app.PaginatedResult[resp.GetProductResponse]
+	ctx, cancel := context.WithTimeout(c, 10*time.Second)
+	defer cancel()
 	if c.DefaultQuery("no_cache", "0") == "0" {
-		err := cache.Get(key, &products)
+		err := cache.Get(ctx, key, &products)
 		if err != nil {
-			panic(err)
+			logger.Error("Error : %v", err)
+			panic(ERROR_CONSTANT.INTERNAL_ERROR)
 		}
 	}
 
@@ -53,30 +60,34 @@ func (pc ProductController) GetAllProduct(c *gin.Context) {
 	if !products.IsEmpty() {
 		isFromCache = true
 	} else {
-		products = *pc.productService.GetAll(&pagination)
-		cache.Set(key, products)
+		products = pc.productService.GetAll(pagination)
+		cache.Set(ctx, key, products)
 	}
 
 	logger.Info("Get all product success")
-	response.Success(c, products, isFromCache)
+	responseUtil.Success(c, products, isFromCache)
 }
 
 func (pc ProductController) GetProductById(c *gin.Context) {
-	defer response.ErrorHandling(c)
+	defer responseUtil.ErrorHandling(c)
 
 	logger.Info(`Get product by id request, id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		panic(err)
+		logger.Error("Error : %v", err)
+		panic(ERROR_CONSTANT.INTERNAL_ERROR)
 	}
 
 	key := "GetProductById:" + c.Param("id")
 
-	var product = app.Product{}
+	var product resp.GetProductResponse
+	ctx, cancel := context.WithTimeout(c, 10*time.Second)
+	defer cancel()
 	if c.DefaultQuery("no_cache", "0") == "0" {
-		err := cache.Get(key, &product)
+		err := cache.Get(ctx, key, &product)
 		if err != nil {
-			panic(err)
+			logger.Error("Error : %v", err)
+			panic(ERROR_CONSTANT.INTERNAL_ERROR)
 		}
 	}
 
@@ -84,20 +95,20 @@ func (pc ProductController) GetProductById(c *gin.Context) {
 	if !product.IsEmpty() {
 		isFromCache = true
 	} else {
-		product = *pc.productService.GetById(uint(id))
-		cache.Set(key, product)
+		product = pc.productService.GetById(uint(id))
+		cache.Set(ctx, key, product)
 	}
 
 	logger.Info(`Get product by id, id = %s success`, c.Param("id"))
-	response.Success(c, product, isFromCache)
+	responseUtil.Success(c, product, isFromCache)
 }
 
 func (pc ProductController) AddProduct(c *gin.Context) {
-	defer response.ErrorHandling(c)
+	defer responseUtil.ErrorHandling(c)
 
 	logger.Info(`Add new product request`)
-	var input validation.AddProduct
-	err := c.ShouldBindJSON(&input)
+	var request request.ProductAddRequest
+	err := c.ShouldBindJSON(&request)
 	if err != nil {
 		panic(err)
 	}
@@ -105,22 +116,23 @@ func (pc ProductController) AddProduct(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	product := pc.productService.AddProduct(input, user.UserId)
+	product := pc.productService.AddProduct(request, user.UserId)
 
 	logger.Info(`Add new product success`)
-	response.Success(c, product, false)
+	responseUtil.Success(c, product, false)
 }
 
 func (pc ProductController) UpdateProduct(c *gin.Context) {
-	defer response.ErrorHandling(c)
+	defer responseUtil.ErrorHandling(c)
 
 	logger.Info(`Update product of id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		panic(err)
+		logger.Error("Error : %v", err)
+		panic(ERROR_CONSTANT.INTERNAL_ERROR)
 	}
-	var input validation.UpdateProduct
-	err = c.ShouldBindJSON(&input)
+	var request request.ProductUpdateRequest
+	err = c.ShouldBindJSON(&request)
 	if err != nil {
 		panic(err)
 	}
@@ -128,19 +140,20 @@ func (pc ProductController) UpdateProduct(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	product := pc.productService.UpdateProduct(uint(id), input, user.UserId)
+	product := pc.productService.UpdateProduct(uint(id), request, user.UserId)
 
 	logger.Info(`Update product of id = %s success`, c.Param("id"))
-	response.Success(c, product, false)
+	responseUtil.Success(c, product, false)
 }
 
 func (pc ProductController) DeleteProduct(c *gin.Context) {
-	defer response.ErrorHandling(c)
+	defer responseUtil.ErrorHandling(c)
 
 	logger.Info(`Delete product of id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		panic(err)
+		logger.Error("Error : %v", err)
+		panic(ERROR_CONSTANT.INTERNAL_ERROR)
 	}
 	user, err := util.GetUserClaims(c)
 	if err != nil {
@@ -149,7 +162,7 @@ func (pc ProductController) DeleteProduct(c *gin.Context) {
 	pc.productService.DeleteProduct(uint(id), user.UserId)
 
 	logger.Info(`Delete product of id = %s success`, c.Param("id"))
-	response.Success(c, nil, false)
+	responseUtil.Success(c, nil, false)
 }
 
 var _ IProductController = (*ProductController)(nil)

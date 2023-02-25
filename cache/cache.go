@@ -22,9 +22,8 @@ func InitCache(redis *redis.Client) {
 	redisClient = redis
 }
 
-func Set(key string, value interface{}) {
+func Set(ctx context.Context, key string, value interface{}) {
 	logger.Info("Set cache for key: %s", key)
-	ctx := context.Background()
 	err := redisClient.Set(ctx, key, value, time.Minute*5).Err()
 	if err != nil {
 		panic(err)
@@ -32,9 +31,8 @@ func Set(key string, value interface{}) {
 	logger.Info("Cache is set for key: %s", key)
 }
 
-func Get(key string, result interface{}) *error {
+func Get(ctx context.Context, key string, result interface{}) *error {
 	logger.Info("Get cache for key: %s", key)
-	ctx := context.Background()
 	val, err := redisClient.Get(ctx, key).Result()
 	if err != nil {
 		return nil

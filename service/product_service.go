@@ -5,18 +5,19 @@ import (
 	"errors"
 	"math"
 	"product-crud/app"
+	"product-crud/dto/request"
+	"product-crud/dto/response"
 	"product-crud/models"
 	"product-crud/repository"
 	"product-crud/util/logger"
-	"product-crud/validation"
 	"time"
 )
 
 type IProductService interface {
-	GetAll(pagination *app.Pagination) *app.PaginatedResult[app.Product]
-	GetById(productId uint) *app.Product
-	AddProduct(productInput validation.AddProduct, userId uint) *app.Product
-	UpdateProduct(productId uint, productInput validation.UpdateProduct, userId uint) *app.Product
+	GetAll(pagination app.Pagination) app.PaginatedResult[response.GetProductResponse]
+	GetById(productId uint) response.GetProductResponse
+	AddProduct(productInput request.ProductAddRequest, userId uint) response.GetProductResponse
+	UpdateProduct(productId uint, productInput request.ProductUpdateRequest, userId uint) response.GetProductResponse
 	DeleteProduct(productId uint, userId uint)
 }
 
@@ -33,25 +34,25 @@ func NewProductService(productRepository repository.IProductRepository, userRepo
 	}
 }
 
-func (ps ProductService) GetAll(pagination *app.Pagination) *app.PaginatedResult[app.Product] {
+func (ps ProductService) GetAll(pagination app.Pagination) app.PaginatedResult[response.GetProductResponse] {
 	logger.Info("Getting all product from repository")
 	var count int64
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	products, err := ps.productRepository.GetAllProduct(ctx, pagination, &count)
+	products, err := ps.productRepository.GetAllProduct(ctx, &pagination, &count)
 	if err != nil {
 		panic(err)
 	}
 
 	logger.Info(`count: %+d`, count)
-	var productDatas []app.Product
+	var productDatas []response.GetProductResponse
 	for _, x := range products {
-		productDatas = append(productDatas, x.ProductToProduct())
+		productDatas = append(productDatas, response.NewGetProductResponse(*x))
 	}
 
-	paginatedResult := app.PaginatedResult[app.Product]{
+	paginatedResult := app.PaginatedResult[response.GetProductResponse]{
 		Items:      productDatas,
 		Page:       pagination.Page,
 		Size:       len(productDatas),
@@ -59,10 +60,10 @@ func (ps ProductService) GetAll(pagination *app.Pagination) *app.PaginatedResult
 		TotalPage:  int(math.Ceil(float64(count) / float64(pagination.Limit))),
 	}
 
-	return &paginatedResult
+	return paginatedResult
 }
 
-func (ps ProductService) GetById(productId uint) *app.Product {
+func (ps ProductService) GetById(productId uint) response.GetProductResponse {
 	logger.Info("Getting product from repository")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -73,11 +74,10 @@ func (ps ProductService) GetById(productId uint) *app.Product {
 		panic(err)
 	}
 
-	productData := product.ProductToProduct()
-	return &productData
+	return response.NewGetProductResponse(*product)
 }
 
-func (ps ProductService) AddProduct(productInput validation.AddProduct, userId uint) *app.Product {
+func (ps ProductService) AddProduct(productInput request.ProductAddRequest, userId uint) response.GetProductResponse {
 	logger.Info(`Adding new product, product = %+v, user_id = %+v`, productInput, userId)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -100,11 +100,10 @@ func (ps ProductService) AddProduct(productInput validation.AddProduct, userId u
 		panic(err)
 	}
 
-	productData := createdProduct.ProductToProduct()
-	return &productData
+	return response.NewGetProductResponse(*createdProduct)
 }
 
-func (ps ProductService) UpdateProduct(productId uint, productInput validation.UpdateProduct, userId uint) *app.Product {
+func (ps ProductService) UpdateProduct(productId uint, productInput request.ProductUpdateRequest, userId uint) response.GetProductResponse {
 	logger.Info(`Updating product, product = %+v, user_id = %d`, productInput, userId)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -127,8 +126,7 @@ func (ps ProductService) UpdateProduct(productId uint, productInput validation.U
 		panic(err)
 	}
 
-	productData := updatedProduct.ProductToProduct()
-	return &productData
+	return response.NewGetProductResponse(*updatedProduct)
 }
 
 func (ps ProductService) DeleteProduct(productId uint, userId uint) {

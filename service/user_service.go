@@ -9,20 +9,21 @@ import (
 	"math"
 	"product-crud/app"
 	"product-crud/config"
+	"product-crud/dto/request"
+	"product-crud/dto/response"
 	"product-crud/models"
 	"product-crud/repository"
 	"product-crud/util/logger"
-	"product-crud/validation"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt"
 )
 
 type IUserService interface {
-	GetAll(pagination *app.Pagination) *app.PaginatedResult[app.User]
-	GetById(userId uint) *app.User
-	Register(userInput validation.RegisterUser) *app.User
-	Login(userInput validation.LoginUser) *string
+	GetAll(pagination app.Pagination) app.PaginatedResult[response.GetUserResponse]
+	GetById(userId uint) response.GetUserResponse
+	Register(userInput request.UserRegisterRequest) response.GetUserResponse
+	Login(userInput request.UserLoginRequest) string
 }
 
 type UserService struct {
@@ -36,23 +37,23 @@ func NewUserService(userRepository repository.IUserRepository) UserService {
 	}
 }
 
-func (us UserService) GetAll(pagination *app.Pagination) *app.PaginatedResult[app.User] {
+func (us UserService) GetAll(pagination app.Pagination) app.PaginatedResult[response.GetUserResponse] {
 	logger.Info("Getting all user from repository")
 	var count int64
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	users, err := us.userRepository.GetAllUser(ctx, pagination, &count)
+	users, err := us.userRepository.GetAllUser(ctx, &pagination, &count)
 	if err != nil {
 		panic(err)
 	}
 
-	var userDatas []app.User
+	var userDatas []response.GetUserResponse
 	for _, x := range users {
-		userDatas = append(userDatas, x.UserToUser())
+		userDatas = append(userDatas, response.NewGetUserResponse(*x))
 	}
-	paginatedResult := app.PaginatedResult[app.User]{
+	paginatedResult := app.PaginatedResult[response.GetUserResponse]{
 		Items:      userDatas,
 		Page:       pagination.Page,
 		Size:       len(userDatas),
@@ -60,10 +61,10 @@ func (us UserService) GetAll(pagination *app.Pagination) *app.PaginatedResult[ap
 		TotalPage:  int(math.Ceil(float64(count) / float64(pagination.Limit))),
 	}
 
-	return &paginatedResult
+	return paginatedResult
 }
 
-func (us UserService) GetById(userId uint) *app.User {
+func (us UserService) GetById(userId uint) response.GetUserResponse {
 	logger.Info("Getting user from repository")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -74,11 +75,10 @@ func (us UserService) GetById(userId uint) *app.User {
 		panic(err)
 	}
 
-	userData := user.UserToUser()
-	return &userData
+	return response.NewGetUserResponse(*user)
 }
 
-func (us UserService) Register(userInput validation.RegisterUser) *app.User {
+func (us UserService) Register(userInput request.UserRegisterRequest) response.GetUserResponse {
 	logger.Info(`Registering new user, user = %+v`, userInput)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -107,11 +107,10 @@ func (us UserService) Register(userInput validation.RegisterUser) *app.User {
 	if err != nil {
 		panic(err)
 	}
-	userData := createdUser.UserToUser()
-	return &userData
+	return response.NewGetUserResponse(*createdUser)
 }
 
-func (us UserService) Login(userInput validation.LoginUser) *string {
+func (us UserService) Login(userInput request.UserLoginRequest) string {
 	logger.Info(`Login user by email, email = %s`, userInput.Email)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -121,7 +120,6 @@ func (us UserService) Login(userInput validation.LoginUser) *string {
 	if err != nil {
 		panic(err)
 	}
-
 	bv := []byte(userInput.Password)
 	hasher := sha256.New()
 	hasher.Write(bv)
@@ -145,7 +143,7 @@ func (us UserService) Login(userInput validation.LoginUser) *string {
 	if err != nil {
 		panic(err)
 	}
-	return &token
+	return token
 }
 
 var _ IUserService = (*UserService)(nil)

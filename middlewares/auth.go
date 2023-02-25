@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"product-crud/app"
 	"product-crud/config"
-	"product-crud/controller/response"
 	"product-crud/util/logger"
+	responseUtil "product-crud/util/response"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +19,7 @@ func Auth(c *gin.Context) {
 		// result := gin.H{
 		// 	"message": "not authorized",
 		// }
-		respo := response.Response{Message: "Internal Error", Error: "UNAUTHORIZED", Status: http.StatusUnauthorized}
+		respo := responseUtil.Response{Message: "Internal Error", Error: "UNAUTHORIZED", Status: http.StatusUnauthorized}
 		c.JSON(http.StatusUnauthorized, respo)
 		c.Abort()
 		return
@@ -44,7 +44,7 @@ func Auth(c *gin.Context) {
 		// 	"error":   err.Error(),
 		// }
 		// c.JSON(http.StatusUnauthorized, result)
-		respo := response.Response{Message: "Internal Error", Error: "UNAUTHORIZED", Status: http.StatusUnauthorized}
+		respo := responseUtil.Response{Message: "Internal Error", Error: "UNAUTHORIZED", Status: http.StatusUnauthorized}
 		c.JSON(http.StatusUnauthorized, respo)
 		c.Abort()
 	}
