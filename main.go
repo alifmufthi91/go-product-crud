@@ -12,9 +12,7 @@ import (
 )
 
 func main() {
-	logger.Init()
-	config.InitEnv()
-
+	// logger.Init()
 	var env = config.GetEnv()
 
 	db := database.DBConnection()

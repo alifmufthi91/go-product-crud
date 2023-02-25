@@ -35,21 +35,23 @@ func InitEnv() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	Env.Port = os.Getenv("PORT")
-	Env.DBHost = os.Getenv("DB_HOST")
-	Env.DBUser = os.Getenv("DB_USERNAME")
-	Env.DBPassword = os.Getenv("DB_PASSWORD")
-	Env.DBName = os.Getenv("DB_NAME")
-	Env.DBPort = os.Getenv("DB_PORT")
-	Env.JWTSECRET = os.Getenv("JWT_SECRET")
-	Env.FilePath = os.Getenv("FILE_PATH")
-	Env.RedisHost = os.Getenv("REDIS_HOST")
-	Env.RedisPort = os.Getenv("REDIS_PORT")
-	Env.RedisPassword = os.Getenv("REDIS_PASSWORD")
+	Env = Environment{
+		Port:          os.Getenv("PORT"),
+		DBHost:        os.Getenv("DB_HOST"),
+		DBUser:        os.Getenv("DB_USERNAME"),
+		DBPassword:    os.Getenv("DB_PASSWORD"),
+		DBName:        os.Getenv("DB_NAME"),
+		DBPort:        os.Getenv("DB_PORT"),
+		JWTSECRET:     os.Getenv("JWT_SECRET"),
+		FilePath:      os.Getenv("FILE_PATH"),
+		RedisHost:     os.Getenv("REDIS_HOST"),
+		RedisPort:     os.Getenv("REDIS_PORT"),
+		RedisPassword: os.Getenv("REDIS_PASSWORD"),
+	}
 	logger.Info("Environment config set")
 }
 
 func GetEnv() *Environment {
-
+	once.Do(InitEnv)
 	return &Env
 }

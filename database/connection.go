@@ -8,6 +8,7 @@ import (
 
 	"product-crud/util/logger"
 
+	"github.com/rs/zerolog/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
@@ -20,7 +21,7 @@ var (
 
 func DBConnection() *gorm.DB {
 	newLogger := gormLogger.New(
-		logger.InfoLogger, // io writer
+		&log.Logger, // io writer
 		gormLogger.Config{
 			SlowThreshold:             time.Second,     // Slow SQL threshold
 			LogLevel:                  gormLogger.Info, // Log level
