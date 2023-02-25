@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -38,7 +39,15 @@ func NewUserService(userRepository repository.IUserRepository) UserService {
 func (us UserService) GetAll(pagination *app.Pagination) *app.PaginatedResult[app.User] {
 	logger.Info("Getting all user from repository")
 	var count int64
-	users := us.userRepository.GetAllUser(pagination, &count)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	users, err := us.userRepository.GetAllUser(ctx, pagination, &count)
+	if err != nil {
+		panic(err)
+	}
+
 	var userDatas []app.User
 	for _, x := range users {
 		userDatas = append(userDatas, x.UserToUser())
@@ -56,17 +65,33 @@ func (us UserService) GetAll(pagination *app.Pagination) *app.PaginatedResult[ap
 
 func (us UserService) GetById(userId uint) *app.User {
 	logger.Info("Getting user from repository")
-	user := us.userRepository.GetByUserId(userId)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	user, err := us.userRepository.GetByUserId(ctx, userId)
+	if err != nil {
+		panic(err)
+	}
+
 	userData := user.UserToUser()
 	return &userData
 }
 
 func (us UserService) Register(userInput validation.RegisterUser) *app.User {
 	logger.Info(`Registering new user, user = %+v`, userInput)
-	existing := us.userRepository.IsExistingEmail(userInput.Email)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	existing, err := us.userRepository.IsExistingEmail(ctx, userInput.Email)
+	if err != nil {
+		panic(err)
+	}
 	if *existing {
 		panic(errors.New("email is already exists"))
 	}
+
 	bv := []byte(userInput.Password)
 	hasher := sha256.New()
 	hasher.Write(bv)
@@ -77,14 +102,25 @@ func (us UserService) Register(userInput validation.RegisterUser) *app.User {
 		Email:     userInput.Email,
 		Password:  bv,
 	}
-	createdUser := us.userRepository.AddUser(user)
+
+	createdUser, err := us.userRepository.AddUser(ctx, user)
+	if err != nil {
+		panic(err)
+	}
 	userData := createdUser.UserToUser()
 	return &userData
 }
 
 func (us UserService) Login(userInput validation.LoginUser) *string {
 	logger.Info(`Login user by email, email = %s`, userInput.Email)
-	user := us.userRepository.GetByEmail(userInput.Email)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	user, err := us.userRepository.GetByEmail(ctx, userInput.Email)
+	if err != nil {
+		panic(err)
+	}
 
 	bv := []byte(userInput.Password)
 	hasher := sha256.New()

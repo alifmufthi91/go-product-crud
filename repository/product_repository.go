@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"product-crud/app"
 	"product-crud/models"
 	"product-crud/util/logger"
@@ -10,11 +11,11 @@ import (
 )
 
 type IProductRepository interface {
-	GetAllProduct(pagination *app.Pagination, count *int64) []*models.Product
-	GetByProductId(productId uint) *models.Product
-	AddProduct(product models.Product) *models.Product
-	UpdateProduct(product models.Product) *models.Product
-	DeleteProduct(productId uint)
+	GetAllProduct(ctx context.Context, pagination *app.Pagination, count *int64) ([]*models.Product, error)
+	GetByProductId(ctx context.Context, productId uint) (*models.Product, error)
+	AddProduct(ctx context.Context, product models.Product) (*models.Product, error)
+	UpdateProduct(ctx context.Context, product models.Product) (*models.Product, error)
+	DeleteProduct(ctx context.Context, productId uint) error
 }
 
 type ProductRepository struct {
@@ -22,63 +23,64 @@ type ProductRepository struct {
 }
 
 func NewProductRepository(db *gorm.DB) ProductRepository {
-	logger.Info("Initializing product repository..")
+	logger.Info("New product repository..")
 	return ProductRepository{
 		DB: db,
 	}
 }
 
-func (repo ProductRepository) GetAllProduct(pagination *app.Pagination, count *int64) []*models.Product {
+func (repo ProductRepository) GetAllProduct(ctx context.Context, pagination *app.Pagination, count *int64) ([]*models.Product, error) {
 	products := []*models.Product{}
 	offset := (pagination.Page - 1) * pagination.Limit
 	queryBuilder := repo.Preload(clause.Associations).Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
-	result := queryBuilder.Find(&products).Limit(-1).Offset(-1).Count(count)
+	result := queryBuilder.WithContext(ctx).Find(&products).Limit(-1).Offset(-1).Count(count)
 	if result.Error != nil {
-		panic(result.Error)
+		return nil, result.Error
 	}
 
-	return products
+	return products, nil
 }
 
-func (repo ProductRepository) GetByProductId(id uint) *models.Product {
+func (repo ProductRepository) GetByProductId(ctx context.Context, id uint) (*models.Product, error) {
 	product := models.Product{}
-	result := repo.Preload(clause.Associations).First(&product, "id = ?", id)
+	result := repo.WithContext(ctx).Preload(clause.Associations).First(&product, "id = ?", id)
 	if result.Error != nil {
-		panic(result.Error)
+		return nil, result.Error
 	}
 
-	return &product
+	return &product, nil
 }
 
-func (repo ProductRepository) AddProduct(product models.Product) *models.Product {
-	result := repo.Create(&product)
+func (repo ProductRepository) AddProduct(ctx context.Context, product models.Product) (*models.Product, error) {
+	result := repo.WithContext(ctx).Create(&product)
 	if result.Error != nil {
-		panic(result.Error)
+		return nil, result.Error
 	}
-	result = repo.Preload(clause.Associations).First(&product, "id = ?", product.ID)
+	result = repo.WithContext(ctx).Preload(clause.Associations).First(&product, "id = ?", product.ID)
 	if result.Error != nil {
-		panic(result.Error)
+		return nil, result.Error
 	}
-	return &product
+	return &product, nil
 }
 
-func (repo ProductRepository) UpdateProduct(product models.Product) *models.Product {
-	result := repo.Updates(&product)
+func (repo ProductRepository) UpdateProduct(ctx context.Context, product models.Product) (*models.Product, error) {
+	result := repo.WithContext(ctx).Updates(&product)
 	if result.Error != nil {
-		panic(result.Error)
+		return nil, result.Error
 	}
-	result = repo.Preload(clause.Associations).First(&product, "id = ?", product.ID)
+	result = repo.WithContext(ctx).Preload(clause.Associations).First(&product, "id = ?", product.ID)
 	if result.Error != nil {
-		panic(result.Error)
+		return nil, result.Error
 	}
-	return &product
+	return &product, nil
 }
 
-func (repo ProductRepository) DeleteProduct(productId uint) {
-	result := repo.Delete(&models.Product{}, productId)
+func (repo ProductRepository) DeleteProduct(ctx context.Context, productId uint) error {
+	result := repo.WithContext(ctx).Delete(&models.Product{}, productId)
 	if result.Error != nil {
-		panic(result.Error)
+		return result.Error
 	}
+	return nil
 }
 
 var _ IProductRepository = (*ProductRepository)(nil)

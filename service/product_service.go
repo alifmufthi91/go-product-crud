@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"math"
 	"product-crud/app"
@@ -8,6 +9,7 @@ import (
 	"product-crud/repository"
 	"product-crud/util/logger"
 	"product-crud/validation"
+	"time"
 )
 
 type IProductService interface {
@@ -34,7 +36,14 @@ func NewProductService(productRepository repository.IProductRepository, userRepo
 func (ps ProductService) GetAll(pagination *app.Pagination) *app.PaginatedResult[app.Product] {
 	logger.Info("Getting all product from repository")
 	var count int64
-	products := ps.productRepository.GetAllProduct(pagination, &count)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	products, err := ps.productRepository.GetAllProduct(ctx, pagination, &count)
+	if err != nil {
+		panic(err)
+	}
 
 	logger.Info(`count: %+d`, count)
 	var productDatas []app.Product
@@ -55,14 +64,29 @@ func (ps ProductService) GetAll(pagination *app.Pagination) *app.PaginatedResult
 
 func (ps ProductService) GetById(productId uint) *app.Product {
 	logger.Info("Getting product from repository")
-	product := ps.productRepository.GetByProductId(productId)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	product, err := ps.productRepository.GetByProductId(ctx, productId)
+	if err != nil {
+		panic(err)
+	}
+
 	productData := product.ProductToProduct()
 	return &productData
 }
 
 func (ps ProductService) AddProduct(productInput validation.AddProduct, userId uint) *app.Product {
 	logger.Info(`Adding new product, product = %+v, user_id = %+v`, productInput, userId)
-	user := ps.userRepository.GetByUserId(userId)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	user, err := ps.userRepository.GetByUserId(ctx, userId)
+	if err != nil {
+		panic(err)
+	}
 
 	product := models.Product{
 		ProductName:        productInput.ProductName,
@@ -70,7 +94,11 @@ func (ps ProductService) AddProduct(productInput validation.AddProduct, userId u
 		Photo:              productInput.Photo,
 		UploaderId:         user.ID,
 	}
-	createdProduct := ps.productRepository.AddProduct(product)
+
+	createdProduct, err := ps.productRepository.AddProduct(ctx, product)
+	if err != nil {
+		panic(err)
+	}
 
 	productData := createdProduct.ProductToProduct()
 	return &productData
@@ -78,14 +106,26 @@ func (ps ProductService) AddProduct(productInput validation.AddProduct, userId u
 
 func (ps ProductService) UpdateProduct(productId uint, productInput validation.UpdateProduct, userId uint) *app.Product {
 	logger.Info(`Updating product, product = %+v, user_id = %d`, productInput, userId)
-	product := ps.productRepository.GetByProductId(productId)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	product, err := ps.productRepository.GetByProductId(ctx, productId)
+	if err != nil {
+		panic(err)
+	}
+
 	if product.UploaderId != userId {
 		panic(errors.New("user is not allowed to modify this product"))
 	}
 	product.ProductName = productInput.ProductName
 	product.ProductDescription = productInput.ProductDescription
 	product.Photo = productInput.Photo
-	updatedProduct := ps.productRepository.UpdateProduct(*product)
+
+	updatedProduct, err := ps.productRepository.UpdateProduct(ctx, *product)
+	if err != nil {
+		panic(err)
+	}
 
 	productData := updatedProduct.ProductToProduct()
 	return &productData
@@ -93,11 +133,22 @@ func (ps ProductService) UpdateProduct(productId uint, productInput validation.U
 
 func (ps ProductService) DeleteProduct(productId uint, userId uint) {
 	logger.Info(`Deleting product, product_id = %d, user_id = %d`, productId, userId)
-	product := ps.productRepository.GetByProductId(productId)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	product, err := ps.productRepository.GetByProductId(ctx, productId)
+	if err != nil {
+		panic(err)
+	}
+
 	if product.UploaderId != userId {
 		panic(errors.New("user is not allowed to modify this product"))
 	}
-	ps.productRepository.DeleteProduct(productId)
+
+	if err := ps.productRepository.DeleteProduct(ctx, productId); err != nil {
+		panic(err)
+	}
 }
 
 var _ IProductService = (*ProductService)(nil)
