@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"product-crud/config"
-	ERROR_CONSTANT "product-crud/constant"
+	ERROR_CONSTANT "product-crud/constant/error_constant"
 	"product-crud/util/logger"
 	responseUtil "product-crud/util/response"
 
@@ -61,7 +61,7 @@ func (fc FileController) Upload(c *gin.Context) {
 		panic(ERROR_CONSTANT.INTERNAL_ERROR)
 	}
 	filepath := filename
-	responseUtil.Success(c, filepath, false)
+	responseUtil.Ok(c, filepath, false)
 }
 
 func (fc FileController) Download(c *gin.Context) {

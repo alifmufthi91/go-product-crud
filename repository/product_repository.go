@@ -2,8 +2,9 @@ package repository
 
 import (
 	"context"
-	"product-crud/app"
+	"product-crud/dto/app"
 	"product-crud/models"
+	errorUtil "product-crud/util/error"
 	"product-crud/util/logger"
 
 	"gorm.io/gorm"
@@ -45,6 +46,9 @@ func (repo ProductRepository) GetByProductId(ctx context.Context, id uint) (*mod
 	product := models.Product{}
 	result := repo.WithContext(ctx).Preload(clause.Associations).First(&product, "id = ?", id)
 	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			panic(errorUtil.DataNotFound("product is not found"))
+		}
 		return nil, result.Error
 	}
 

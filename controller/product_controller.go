@@ -2,9 +2,9 @@ package controller
 
 import (
 	"context"
-	"product-crud/app"
 	"product-crud/cache"
-	ERROR_CONSTANT "product-crud/constant"
+	ERROR_CONSTANT "product-crud/constant/error_constant"
+	"product-crud/dto/app"
 	"product-crud/dto/request"
 	resp "product-crud/dto/response"
 	"product-crud/service"
@@ -46,13 +46,12 @@ func (pc ProductController) GetAllProduct(c *gin.Context) {
 	key := "GetAllProduct:all:" + hash
 
 	var products app.PaginatedResult[resp.GetProductResponse]
-	ctx, cancel := context.WithTimeout(c, 10*time.Second)
+	ctx, cancel := context.WithTimeout(c, 1*time.Second)
 	defer cancel()
 	if c.DefaultQuery("no_cache", "0") == "0" {
 		err := cache.Get(ctx, key, &products)
 		if err != nil {
 			logger.Error("Error : %v", err)
-			panic(ERROR_CONSTANT.INTERNAL_ERROR)
 		}
 	}
 
@@ -61,11 +60,18 @@ func (pc ProductController) GetAllProduct(c *gin.Context) {
 		isFromCache = true
 	} else {
 		products = pc.productService.GetAll(pagination)
-		cache.Set(ctx, key, products)
+		go func() {
+			ctx, cancel := context.WithTimeout(c, 3*time.Second)
+			defer cancel()
+			err := cache.Set(ctx, key, products)
+			if err != nil {
+				logger.Error("Error : %v", err)
+			}
+		}()
 	}
 
 	logger.Info("Get all product success")
-	responseUtil.Success(c, products, isFromCache)
+	responseUtil.Ok(c, products, isFromCache)
 }
 
 func (pc ProductController) GetProductById(c *gin.Context) {
@@ -81,13 +87,12 @@ func (pc ProductController) GetProductById(c *gin.Context) {
 	key := "GetProductById:" + c.Param("id")
 
 	var product resp.GetProductResponse
-	ctx, cancel := context.WithTimeout(c, 10*time.Second)
+	ctx, cancel := context.WithTimeout(c, 1*time.Second)
 	defer cancel()
 	if c.DefaultQuery("no_cache", "0") == "0" {
 		err := cache.Get(ctx, key, &product)
 		if err != nil {
 			logger.Error("Error : %v", err)
-			panic(ERROR_CONSTANT.INTERNAL_ERROR)
 		}
 	}
 
@@ -96,11 +101,18 @@ func (pc ProductController) GetProductById(c *gin.Context) {
 		isFromCache = true
 	} else {
 		product = pc.productService.GetById(uint(id))
-		cache.Set(ctx, key, product)
+		go func() {
+			ctx, cancel := context.WithTimeout(c, 3*time.Second)
+			defer cancel()
+			err := cache.Set(ctx, key, product)
+			if err != nil {
+				logger.Error("Error : %v", err)
+			}
+		}()
 	}
 
 	logger.Info(`Get product by id, id = %s success`, c.Param("id"))
-	responseUtil.Success(c, product, isFromCache)
+	responseUtil.Ok(c, product, isFromCache)
 }
 
 func (pc ProductController) AddProduct(c *gin.Context) {
@@ -119,7 +131,7 @@ func (pc ProductController) AddProduct(c *gin.Context) {
 	product := pc.productService.AddProduct(request, user.UserId)
 
 	logger.Info(`Add new product success`)
-	responseUtil.Success(c, product, false)
+	responseUtil.Ok(c, product, false)
 }
 
 func (pc ProductController) UpdateProduct(c *gin.Context) {
@@ -143,7 +155,7 @@ func (pc ProductController) UpdateProduct(c *gin.Context) {
 	product := pc.productService.UpdateProduct(uint(id), request, user.UserId)
 
 	logger.Info(`Update product of id = %s success`, c.Param("id"))
-	responseUtil.Success(c, product, false)
+	responseUtil.Ok(c, product, false)
 }
 
 func (pc ProductController) DeleteProduct(c *gin.Context) {
@@ -162,7 +174,7 @@ func (pc ProductController) DeleteProduct(c *gin.Context) {
 	pc.productService.DeleteProduct(uint(id), user.UserId)
 
 	logger.Info(`Delete product of id = %s success`, c.Param("id"))
-	responseUtil.Success(c, nil, false)
+	responseUtil.Ok(c, nil, false)
 }
 
 var _ IProductController = (*ProductController)(nil)

@@ -4,15 +4,15 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
-	"errors"
 	"fmt"
 	"math"
-	"product-crud/app"
 	"product-crud/config"
+	"product-crud/dto/app"
 	"product-crud/dto/request"
 	"product-crud/dto/response"
 	"product-crud/models"
 	"product-crud/repository"
+	errorUtil "product-crud/util/error"
 	"product-crud/util/logger"
 	"time"
 
@@ -89,7 +89,7 @@ func (us UserService) Register(userInput request.UserRegisterRequest) response.G
 		panic(err)
 	}
 	if *existing {
-		panic(errors.New("email is already exists"))
+		panic(errorUtil.ParamIllegal("email is already exists"))
 	}
 
 	bv := []byte(userInput.Password)
@@ -125,7 +125,7 @@ func (us UserService) Login(userInput request.UserLoginRequest) string {
 	hasher.Write(bv)
 
 	if !bytes.Equal(user.Password, bv) {
-		panic(errors.New(`user Password is wrong`))
+		panic(errorUtil.ParamIllegal("user password is incorrect"))
 	}
 
 	sign := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), app.UserClaims{
@@ -135,7 +135,7 @@ func (us UserService) Login(userInput request.UserLoginRequest) string {
 		LastName:  user.LastName,
 		FullName:  fmt.Sprintf(`%s %s`, user.FirstName, user.LastName),
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 24 * 60).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * 999999).Unix(),
 			Issuer:    "test",
 		},
 	})

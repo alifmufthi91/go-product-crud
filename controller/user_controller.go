@@ -2,9 +2,9 @@ package controller
 
 import (
 	"context"
-	"product-crud/app"
 	"product-crud/cache"
-	ERROR_CONSTANT "product-crud/constant"
+	ERROR_CONSTANT "product-crud/constant/error_constant"
+	"product-crud/dto/app"
 	"product-crud/dto/request"
 	resp "product-crud/dto/response"
 	"product-crud/service"
@@ -50,13 +50,13 @@ func (uc UserController) GetAllUser(c *gin.Context) {
 	key := "GetAllUser:all:" + hash
 
 	var users app.PaginatedResult[resp.GetUserResponse]
-	ctx, cancel := context.WithTimeout(c, 10*time.Second)
+	ctx, cancel := context.WithTimeout(c, 1*time.Second)
 	defer cancel()
 	if c.DefaultQuery("no_cache", "0") == "0" {
 		err := cache.Get(ctx, key, &users)
 		if err != nil {
 			logger.Error("Error : %v", err)
-			panic(ERROR_CONSTANT.INTERNAL_ERROR)
+			// panic(ERROR_CONSTANT.INTERNAL_ERROR)
 		}
 	}
 	isFromCache := false
@@ -64,10 +64,17 @@ func (uc UserController) GetAllUser(c *gin.Context) {
 		isFromCache = true
 	} else {
 		users = uc.userService.GetAll(pagination)
-		cache.Set(ctx, key, users)
+		go func() {
+			ctx, cancel := context.WithTimeout(c, 3*time.Second)
+			defer cancel()
+			err := cache.Set(ctx, key, users)
+			if err != nil {
+				logger.Error("Error : %v", err)
+			}
+		}()
 	}
 	logger.Info("Get all user success")
-	responseUtil.Success(c, users, isFromCache)
+	responseUtil.Ok(c, users, isFromCache)
 }
 
 func (uc UserController) GetUserById(c *gin.Context) {
@@ -84,13 +91,13 @@ func (uc UserController) GetUserById(c *gin.Context) {
 	key := "GetUserById:" + c.Param("id")
 
 	var user resp.GetUserResponse
-	ctx, cancel := context.WithTimeout(c, 10*time.Second)
+	ctx, cancel := context.WithTimeout(c, 1*time.Second)
 	defer cancel()
 	if c.DefaultQuery("no_cache", "0") == "0" {
 		err := cache.Get(ctx, key, &user)
 		if err != nil {
 			logger.Error("Error : %v", err)
-			panic(ERROR_CONSTANT.INTERNAL_ERROR)
+			// panic(ERROR_CONSTANT.INTERNAL_ERROR)
 		}
 	}
 
@@ -99,11 +106,18 @@ func (uc UserController) GetUserById(c *gin.Context) {
 		isFromCache = true
 	} else {
 		user = uc.userService.GetById(uint(id))
-		cache.Set(ctx, key, user)
+		go func() {
+			ctx, cancel := context.WithTimeout(c, 3*time.Second)
+			defer cancel()
+			err := cache.Set(ctx, key, user)
+			if err != nil {
+				logger.Error("Error : %v", err)
+			}
+		}()
 	}
 
 	logger.Info(`Get user by id, id = %s success`, c.Param("id"))
-	responseUtil.Success(c, user, isFromCache)
+	responseUtil.Ok(c, user, isFromCache)
 }
 
 func (uc UserController) RegisterUser(c *gin.Context) {
@@ -118,7 +132,7 @@ func (uc UserController) RegisterUser(c *gin.Context) {
 	user := uc.userService.Register(request)
 
 	logger.Info(`Register new user success`)
-	responseUtil.Success(c, user, false)
+	responseUtil.Ok(c, user, false)
 }
 
 func (uc UserController) LoginUser(c *gin.Context) {
@@ -133,11 +147,11 @@ func (uc UserController) LoginUser(c *gin.Context) {
 	user := uc.userService.Login(request)
 
 	logger.Info(`Login User success`)
-	responseUtil.Success(c, user, false)
+	responseUtil.Ok(c, user, false)
 }
 
 func (uc UserController) GetAllUserRequestCounter(c *gin.Context) {
 	defer responseUtil.ErrorHandling(c)
 
-	responseUtil.Success(c, atomic.LoadUint64(&getAllUserRequestCalled), false)
+	responseUtil.Ok(c, atomic.LoadUint64(&getAllUserRequestCalled), false)
 }

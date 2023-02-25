@@ -2,13 +2,13 @@ package service
 
 import (
 	"context"
-	"errors"
 	"math"
-	"product-crud/app"
+	"product-crud/dto/app"
 	"product-crud/dto/request"
 	"product-crud/dto/response"
 	"product-crud/models"
 	"product-crud/repository"
+	errorUtil "product-crud/util/error"
 	"product-crud/util/logger"
 	"time"
 )
@@ -115,7 +115,7 @@ func (ps ProductService) UpdateProduct(productId uint, productInput request.Prod
 	}
 
 	if product.UploaderId != userId {
-		panic(errors.New("user is not allowed to modify this product"))
+		panic(errorUtil.Unauthorized("user is not allowed to modify this product"))
 	}
 	product.ProductName = productInput.ProductName
 	product.ProductDescription = productInput.ProductDescription
@@ -141,7 +141,7 @@ func (ps ProductService) DeleteProduct(productId uint, userId uint) {
 	}
 
 	if product.UploaderId != userId {
-		panic(errors.New("user is not allowed to modify this product"))
+		panic(errorUtil.Unauthorized("user is not allowed to modify this product"))
 	}
 
 	if err := ps.productRepository.DeleteProduct(ctx, productId); err != nil {

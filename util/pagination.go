@@ -1,7 +1,7 @@
 package util
 
 import (
-	"product-crud/app"
+	"product-crud/dto/app"
 	"strconv"
 
 	"github.com/gin-gonic/gin"

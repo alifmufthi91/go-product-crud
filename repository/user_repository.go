@@ -2,8 +2,9 @@ package repository
 
 import (
 	"context"
-	"product-crud/app"
+	"product-crud/dto/app"
 	"product-crud/models"
+	errorUtil "product-crud/util/error"
 	"product-crud/util/logger"
 
 	"gorm.io/gorm"
@@ -45,6 +46,9 @@ func (repo UserRepository) GetByUserId(ctx context.Context, id uint) (*models.Us
 	user := models.User{}
 	result := repo.WithContext(ctx).Preload("Products.Uploader").Preload(clause.Associations).First(&user, "users.id = ?", id)
 	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			panic(errorUtil.DataNotFound("user is not found"))
+		}
 		return nil, result.Error
 	}
 
@@ -55,6 +59,9 @@ func (repo UserRepository) GetByEmail(ctx context.Context, email string) (*model
 	user := models.User{}
 	result := repo.WithContext(ctx).Preload(clause.Associations).First(&user, "email = ?", email)
 	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			panic(errorUtil.DataNotFound("user is not found"))
+		}
 		return nil, result.Error
 	}
 

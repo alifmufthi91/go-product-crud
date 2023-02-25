@@ -2,6 +2,7 @@ package responseUtil
 
 import (
 	"net/http"
+	"product-crud/dto/app"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,14 +15,19 @@ type Response struct {
 	FromCache bool        `json:"from_cache"`
 }
 
-func Success(c *gin.Context, data interface{}, isFromCache bool) {
+func Ok(c *gin.Context, data interface{}, isFromCache bool) {
 	respond(c, http.StatusOK, Response{Message: "SUCCESS", Data: data, Status: http.StatusOK, FromCache: isFromCache})
 }
 
-func Fail(c *gin.Context, err string) {
-	respond(c, http.StatusInternalServerError, Response{Message: err, Error: "Internal Server Error", Status: http.StatusInternalServerError})
+func Accepted(c *gin.Context, data interface{}, isFromCache bool) {
+	respond(c, http.StatusAccepted, Response{Message: "SUCCESS", Data: data, Status: http.StatusAccepted, FromCache: isFromCache})
 }
 
-func respond(c *gin.Context, code int, payload interface{}) {
+func Fail(c *gin.Context, response app.ErrorHttpResponse) {
+	respond(c, response.HttpStatus, Response{Message: response.Message, Error: response.ErrorName, Status: response.HttpStatus})
+}
+
+func respond(c *gin.Context, code int, payload Response) {
 	c.JSON(code, payload)
+	c.Abort()
 }
