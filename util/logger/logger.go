@@ -34,10 +34,10 @@ func Init() {
 	var writers []io.Writer
 	if config.GetEnv().Mode != "prod" {
 		writers = append(writers, zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
+		writers = append(writers, newRollingFile())
 	} else {
 		writers = append(writers, os.Stdout)
 	}
-	writers = append(writers, newRollingFile())
 	mw := io.MultiWriter(writers...)
 	logger = zerolog.New(mw).With().Timestamp().Caller().Logger()
 }
