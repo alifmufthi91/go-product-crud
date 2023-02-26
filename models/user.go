@@ -6,9 +6,9 @@ import (
 
 type User struct {
 	gorm.Model
-	FirstName string `gorm:"type:varchar(50)"`
-	LastName  string `gorm:"type:varchar(50)"`
-	Email     string `gorm:"type:varchar(100);unique_index"`
-	Password  []byte
+	FirstName string    `gorm:"type:varchar(50)"`
+	LastName  string    `gorm:"type:varchar(50)"`
+	Email     string    `gorm:"type:varchar(100);unique_index"`
+	Password  []byte    `gorm:"->:false;<-:create"`
 	Products  []Product `gorm:"foreignKey:UploaderId"`
 }

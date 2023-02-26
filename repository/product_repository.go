@@ -60,10 +60,10 @@ func (repo ProductRepository) AddProduct(ctx context.Context, product models.Pro
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	result = repo.WithContext(ctx).Preload(clause.Associations).First(&product, "id = ?", product.ID)
-	if result.Error != nil {
-		return nil, result.Error
-	}
+	// result = repo.WithContext(ctx).Preload(clause.Associations).First(&product, "id = ?", product.ID)
+	// if result.Error != nil {
+	// 	return nil, result.Error
+	// }
 	return &product, nil
 }
 
@@ -72,10 +72,10 @@ func (repo ProductRepository) UpdateProduct(ctx context.Context, product models.
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	result = repo.WithContext(ctx).Preload(clause.Associations).First(&product, "id = ?", product.ID)
-	if result.Error != nil {
-		return nil, result.Error
-	}
+	// result = repo.WithContext(ctx).Preload(clause.Associations).First(&product, "id = ?", product.ID)
+	// if result.Error != nil {
+	// 	return nil, result.Error
+	// }
 	return &product, nil
 }
 
