@@ -139,7 +139,7 @@ func (us UserService) Login(userInput request.UserLoginRequest) string {
 			Issuer:    "test",
 		},
 	})
-	token, err := sign.SignedString([]byte(config.Env.JWTSECRET))
+	token, err := sign.SignedString([]byte(config.GetEnv().JWTSECRET))
 	if err != nil {
 		panic(err)
 	}

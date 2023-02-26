@@ -15,12 +15,11 @@ import (
 
 var (
 	migrate = flag.Bool("migrate", false, "auto migrate the data models")
-	dev     = flag.Bool("dev", false, "turn on development mode")
 )
 
 func main() {
 	flag.Parse()
-	logger.Init(*dev)
+	logger.Init()
 	var env = config.GetEnv()
 
 	db := database.DBConnection()

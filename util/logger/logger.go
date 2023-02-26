@@ -3,8 +3,10 @@ package logger
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path"
+	"product-crud/config"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -27,10 +29,10 @@ func Warn(format string, v ...interface{}) {
 	logger.Warn().CallerSkipFrame(1).Msg(fmt.Sprintf(format, v...))
 }
 
-func Init(debug bool) {
-	fmt.Println("Init logger..")
+func Init() {
+	log.Println("Init logger..")
 	var writers []io.Writer
-	if debug {
+	if config.GetEnv().Mode != "prod" {
 		writers = append(writers, zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
 	} else {
 		writers = append(writers, os.Stdout)
@@ -41,13 +43,13 @@ func Init(debug bool) {
 }
 
 func newRollingFile() io.Writer {
-	pathfile := path.Join("/tmp/product-crud", "log.json")
+	pathfile := path.Join(config.GetEnv().FilePath, "product-crud", "log.json")
 	if _, err := os.Stat(pathfile); err != nil {
-		fmt.Println("Path does not exist!", err)
+		log.Println("Path does not exist!", err)
 	}
 	return &lumberjack.Logger{
-		Filename:   path.Join(pathfile),
-		MaxBackups: 5,
+		Filename:   pathfile,
+		MaxBackups: 2,
 		MaxSize:    50,
 	}
 }

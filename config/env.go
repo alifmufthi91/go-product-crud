@@ -3,7 +3,6 @@ package config
 import (
 	"log"
 	"os"
-	"product-crud/util/logger"
 	"sync"
 
 	"github.com/joho/godotenv"
@@ -28,6 +27,8 @@ type Environment struct {
 	RedisHost     string `envconfig:"REDIS_HOST"`
 	RedisPort     string `envconfig:"REDIS_PORT"`
 	RedisPassword string `envconfig:"REDIS_PASSWORD"`
+
+	Mode string `envconfig:"MODE"`
 }
 
 func InitEnv() {
@@ -47,8 +48,9 @@ func InitEnv() {
 		RedisHost:     os.Getenv("REDIS_HOST"),
 		RedisPort:     os.Getenv("REDIS_PORT"),
 		RedisPassword: os.Getenv("REDIS_PASSWORD"),
+		Mode:          os.Getenv("MODE"),
 	}
-	logger.Info("Environment config set")
+	log.Println("Environment config set")
 }
 
 func GetEnv() *Environment {
