@@ -12,7 +12,7 @@ import (
 )
 
 type IUserRepository interface {
-	GetAllUser(ctx context.Context, pagination *app.Pagination, count *int64) ([]*models.User, error)
+	GetAllUser(ctx context.Context, pagination app.Pagination, count *int64) ([]*models.User, error)
 	GetByUserId(ctx context.Context, userId uint) (*models.User, error)
 	GetByEmail(ctx context.Context, email string) (*models.User, error)
 	AddUser(ctx context.Context, user models.User) (*models.User, error)
@@ -30,7 +30,7 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	}
 }
 
-func (repo UserRepository) GetAllUser(ctx context.Context, pagination *app.Pagination, count *int64) ([]*models.User, error) {
+func (repo UserRepository) GetAllUser(ctx context.Context, pagination app.Pagination, count *int64) ([]*models.User, error) {
 	users := []*models.User{}
 	offset := (pagination.Page - 1) * pagination.Limit
 	queryBuilder := repo.Preload("Products.Uploader").Preload(clause.Associations).Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)

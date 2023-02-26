@@ -44,7 +44,7 @@ func (us UserService) GetAll(pagination app.Pagination) app.PaginatedResult[resp
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	users, err := us.userRepository.GetAllUser(ctx, &pagination, &count)
+	users, err := us.userRepository.GetAllUser(ctx, pagination, &count)
 	if err != nil {
 		panic(err)
 	}

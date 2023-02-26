@@ -40,10 +40,16 @@ func (pc ProductController) GetAllProduct(c *gin.Context) {
 	defer responseUtil.ErrorHandling(c)
 
 	logger.Info("Get all product request")
-	pagination := util.GeneratePaginationFromRequest(c)
+	pagination, err := util.GeneratePaginationFromRequest(c)
+	if err != nil {
+		panic(err)
+	}
 
-	hash := util.HashFromStruct(pagination)
-	key := "GetAllProduct:all:" + hash
+	hash, err := util.HashFromStruct(pagination)
+	if err != nil {
+		panic(err)
+	}
+	key := "GetAllProduct:all:" + *hash
 
 	var products app.PaginatedResult[resp.GetProductResponse]
 	ctx, cancel := context.WithTimeout(c, 1*time.Second)
@@ -59,7 +65,7 @@ func (pc ProductController) GetAllProduct(c *gin.Context) {
 	if !products.IsEmpty() {
 		isFromCache = true
 	} else {
-		products = pc.productService.GetAll(pagination)
+		products = pc.productService.GetAll(*pagination)
 		go func() {
 			ctx, cancel := context.WithTimeout(c, 3*time.Second)
 			defer cancel()
