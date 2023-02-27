@@ -14,11 +14,11 @@ import (
 )
 
 type IProductService interface {
-	GetAll(pagination app.Pagination) app.PaginatedResult[response.GetProductResponse]
-	GetById(productId uint) response.GetProductResponse
-	AddProduct(productInput request.ProductAddRequest, userId uint) response.GetProductResponse
-	UpdateProduct(productId uint, productInput request.ProductUpdateRequest, userId uint) response.GetProductResponse
-	DeleteProduct(productId uint, userId uint)
+	GetAll(pagination app.Pagination) (*app.PaginatedResult[response.GetProductResponse], error)
+	GetById(productId uint) (*response.GetProductResponse, error)
+	AddProduct(productInput request.ProductAddRequest, userId uint) (*response.GetProductResponse, error)
+	UpdateProduct(productId uint, productInput request.ProductUpdateRequest, userId uint) (*response.GetProductResponse, error)
+	DeleteProduct(productId uint, userId uint) error
 }
 
 type ProductService struct {
@@ -34,7 +34,7 @@ func NewProductService(productRepository repository.IProductRepository, userRepo
 	}
 }
 
-func (ps ProductService) GetAll(pagination app.Pagination) app.PaginatedResult[response.GetProductResponse] {
+func (ps ProductService) GetAll(pagination app.Pagination) (*app.PaginatedResult[response.GetProductResponse], error) {
 	logger.Info("Getting all product from repository")
 	var count int64
 
@@ -44,7 +44,7 @@ func (ps ProductService) GetAll(pagination app.Pagination) app.PaginatedResult[r
 	products, err := ps.productRepository.GetAllProduct(ctx, &pagination, &count)
 	if err != nil {
 		logger.Error("Error : %v", err)
-		panic(err)
+		return nil, err
 	}
 
 	var productDatas []response.GetProductResponse
@@ -52,16 +52,16 @@ func (ps ProductService) GetAll(pagination app.Pagination) app.PaginatedResult[r
 		productDatas = append(productDatas, *response.NewGetProductResponse(x))
 	}
 
-	return app.PaginatedResult[response.GetProductResponse]{
+	return &app.PaginatedResult[response.GetProductResponse]{
 		Items:      productDatas,
 		Page:       pagination.Page,
 		Size:       len(productDatas),
 		TotalItems: int(count),
 		TotalPage:  int(math.Ceil(float64(count) / float64(pagination.Limit))),
-	}
+	}, nil
 }
 
-func (ps ProductService) GetById(productId uint) response.GetProductResponse {
+func (ps ProductService) GetById(productId uint) (*response.GetProductResponse, error) {
 	logger.Info("Getting product from repository")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -70,13 +70,13 @@ func (ps ProductService) GetById(productId uint) response.GetProductResponse {
 	product, err := ps.productRepository.GetByProductId(ctx, productId)
 	if err != nil {
 		logger.Error("Error : %v", err)
-		panic(err)
+		return nil, err
 	}
 
-	return *response.NewGetProductResponse(product)
+	return response.NewGetProductResponse(product), nil
 }
 
-func (ps ProductService) AddProduct(productInput request.ProductAddRequest, userId uint) response.GetProductResponse {
+func (ps ProductService) AddProduct(productInput request.ProductAddRequest, userId uint) (*response.GetProductResponse, error) {
 	logger.Info(`Adding new product, product = %+v, user_id = %+v`, productInput, userId)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -85,7 +85,7 @@ func (ps ProductService) AddProduct(productInput request.ProductAddRequest, user
 	user, err := ps.userRepository.GetByUserId(ctx, userId)
 	if err != nil {
 		logger.Error("Error : %v", err)
-		panic(err)
+		return nil, err
 	}
 
 	product := models.Product{
@@ -98,13 +98,13 @@ func (ps ProductService) AddProduct(productInput request.ProductAddRequest, user
 	createdProduct, err := ps.productRepository.AddProduct(ctx, product)
 	if err != nil {
 		logger.Error("Error : %v", err)
-		panic(err)
+		return nil, err
 	}
 
-	return *response.NewGetProductResponse(createdProduct)
+	return response.NewGetProductResponse(createdProduct), nil
 }
 
-func (ps ProductService) UpdateProduct(productId uint, productInput request.ProductUpdateRequest, userId uint) response.GetProductResponse {
+func (ps ProductService) UpdateProduct(productId uint, productInput request.ProductUpdateRequest, userId uint) (*response.GetProductResponse, error) {
 	logger.Info(`Updating product, product = %+v, user_id = %d`, productInput, userId)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -113,13 +113,13 @@ func (ps ProductService) UpdateProduct(productId uint, productInput request.Prod
 	product, err := ps.productRepository.GetByProductId(ctx, productId)
 	if err != nil {
 		logger.Error("Error : %v", err)
-		panic(err)
+		return nil, err
 	}
 
 	if product.UploaderId != userId {
 		err := errorUtil.Unauthorized("user is not allowed to modify this product")
 		logger.Error("Error : %v", err)
-		panic(err)
+		return nil, err
 	}
 	product.ProductName = productInput.ProductName
 	product.ProductDescription = productInput.ProductDescription
@@ -128,13 +128,13 @@ func (ps ProductService) UpdateProduct(productId uint, productInput request.Prod
 	updatedProduct, err := ps.productRepository.UpdateProduct(ctx, *product)
 	if err != nil {
 		logger.Error("Error : %v", err)
-		panic(err)
+		return nil, err
 	}
 
-	return *response.NewGetProductResponse(updatedProduct)
+	return response.NewGetProductResponse(updatedProduct), nil
 }
 
-func (ps ProductService) DeleteProduct(productId uint, userId uint) {
+func (ps ProductService) DeleteProduct(productId uint, userId uint) error {
 	logger.Info(`Deleting product, product_id = %d, user_id = %d`, productId, userId)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -143,19 +143,20 @@ func (ps ProductService) DeleteProduct(productId uint, userId uint) {
 	product, err := ps.productRepository.GetByProductId(ctx, productId)
 	if err != nil {
 		logger.Error("Error : %v", err)
-		panic(err)
+		return err
 	}
 
 	if product.UploaderId != userId {
 		err := errorUtil.Unauthorized("user is not allowed to modify this product")
 		logger.Error("Error : %v", err)
-		panic(err)
+		return err
 	}
 
 	if err := ps.productRepository.DeleteProduct(ctx, productId); err != nil {
 		logger.Error("Error : %v", err)
-		panic(err)
+		return err
 	}
+	return nil
 }
 
 var _ IProductService = (*ProductService)(nil)

@@ -19,15 +19,15 @@ import (
 	"gorm.io/gorm"
 )
 
-func TestUserRepositorySuite(t *testing.T) {
-	suite.Run(t, new(UserRepositorySuite))
-}
-
 type UserRepositorySuite struct {
 	suite.Suite
 	DB         *gorm.DB
 	mock       sqlmock.Sqlmock
 	repository repository.UserRepository
+}
+
+func TestUserRepositorySuite(t *testing.T) {
+	suite.Run(t, new(UserRepositorySuite))
 }
 
 func (s *UserRepositorySuite) SetupSuite() {
