@@ -46,7 +46,7 @@ func (pc ProductController) GetAllProduct(c *gin.Context) {
 	key := "GetAllProduct:all:" + hash
 
 	var products app.PaginatedResult[resp.GetProductResponse]
-	ctx, cancel := context.WithTimeout(c, 1*time.Second)
+	ctx, cancel := context.WithTimeout(c, 3*time.Second)
 	defer cancel()
 	if c.DefaultQuery("no_cache", "0") == "0" {
 		err := cache.Get(ctx, key, &products)
@@ -87,7 +87,7 @@ func (pc ProductController) GetProductById(c *gin.Context) {
 	key := "GetProductById:" + c.Param("id")
 
 	var product resp.GetProductResponse
-	ctx, cancel := context.WithTimeout(c, 1*time.Second)
+	ctx, cancel := context.WithTimeout(c, 3*time.Second)
 	defer cancel()
 	if c.DefaultQuery("no_cache", "0") == "0" {
 		err := cache.Get(ctx, key, &product)

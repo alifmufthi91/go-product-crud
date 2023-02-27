@@ -50,7 +50,7 @@ func (uc UserController) GetAllUser(c *gin.Context) {
 	key := "GetAllUser:all:" + hash
 
 	var users app.PaginatedResult[resp.GetUserResponse]
-	ctx, cancel := context.WithTimeout(c, 1*time.Second)
+	ctx, cancel := context.WithTimeout(c, 3*time.Second)
 	defer cancel()
 	if c.DefaultQuery("no_cache", "0") == "0" {
 		err := cache.Get(ctx, key, &users)
@@ -91,7 +91,7 @@ func (uc UserController) GetUserById(c *gin.Context) {
 	key := "GetUserById:" + c.Param("id")
 
 	var user resp.GetUserResponse
-	ctx, cancel := context.WithTimeout(c, 1*time.Second)
+	ctx, cancel := context.WithTimeout(c, 3*time.Second)
 	defer cancel()
 	if c.DefaultQuery("no_cache", "0") == "0" {
 		err := cache.Get(ctx, key, &user)
