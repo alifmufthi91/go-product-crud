@@ -8,7 +8,6 @@ import (
 	"product-crud/util/logger"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type IProductRepository interface {
@@ -31,9 +30,9 @@ func NewProductRepository(db *gorm.DB) ProductRepository {
 }
 
 func (repo ProductRepository) GetAllProduct(ctx context.Context, pagination *app.Pagination, count *int64) ([]*models.Product, error) {
-	products := []*models.Product{}
+	var products []*models.Product
 	offset := (pagination.Page - 1) * pagination.Limit
-	queryBuilder := repo.Preload(clause.Associations).Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
+	queryBuilder := repo.Joins("Uploader").Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
 	result := queryBuilder.WithContext(ctx).Find(&products).Limit(-1).Offset(-1).Count(count)
 	if result.Error != nil {
 		return nil, result.Error
@@ -43,8 +42,8 @@ func (repo ProductRepository) GetAllProduct(ctx context.Context, pagination *app
 }
 
 func (repo ProductRepository) GetByProductId(ctx context.Context, id uint) (*models.Product, error) {
-	product := models.Product{}
-	result := repo.WithContext(ctx).Preload(clause.Associations).First(&product, "id = ?", id)
+	var product models.Product
+	result := repo.WithContext(ctx).Joins("Uploader").First(&product, "products.id = ?", id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			panic(errorUtil.DataNotFound("product is not found"))
@@ -60,10 +59,6 @@ func (repo ProductRepository) AddProduct(ctx context.Context, product models.Pro
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	// result = repo.WithContext(ctx).Preload(clause.Associations).First(&product, "id = ?", product.ID)
-	// if result.Error != nil {
-	// 	return nil, result.Error
-	// }
 	return &product, nil
 }
 
@@ -72,10 +67,6 @@ func (repo ProductRepository) UpdateProduct(ctx context.Context, product models.
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	// result = repo.WithContext(ctx).Preload(clause.Associations).First(&product, "id = ?", product.ID)
-	// if result.Error != nil {
-	// 	return nil, result.Error
-	// }
 	return &product, nil
 }
 

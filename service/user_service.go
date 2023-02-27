@@ -46,12 +46,13 @@ func (us UserService) GetAll(pagination app.Pagination) app.PaginatedResult[resp
 
 	users, err := us.userRepository.GetAllUser(ctx, pagination, &count)
 	if err != nil {
+		logger.Error("Error : %v", err)
 		panic(err)
 	}
 
 	var userDatas []response.GetUserResponse
 	for _, x := range users {
-		userDatas = append(userDatas, response.NewGetUserResponse(*x))
+		userDatas = append(userDatas, *response.NewGetUserResponse(x))
 	}
 	return app.PaginatedResult[response.GetUserResponse]{
 		Items:      userDatas,
@@ -70,10 +71,11 @@ func (us UserService) GetById(userId uint) response.GetUserResponse {
 
 	user, err := us.userRepository.GetByUserId(ctx, userId)
 	if err != nil {
+		logger.Error("Error : %v", err)
 		panic(err)
 	}
 
-	return response.NewGetUserResponse(*user)
+	return *response.NewGetUserResponse(user)
 }
 
 func (us UserService) Register(userInput request.UserRegisterRequest) response.GetUserResponse {
@@ -105,7 +107,7 @@ func (us UserService) Register(userInput request.UserRegisterRequest) response.G
 	if err != nil {
 		panic(err)
 	}
-	return response.NewGetUserResponse(*createdUser)
+	return *response.NewGetUserResponse(createdUser)
 }
 
 func (us UserService) Login(userInput request.UserLoginRequest) string {

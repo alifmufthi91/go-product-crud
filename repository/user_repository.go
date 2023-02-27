@@ -8,7 +8,6 @@ import (
 	"product-crud/util/logger"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type IUserRepository interface {
@@ -31,9 +30,9 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 }
 
 func (repo UserRepository) GetAllUser(ctx context.Context, pagination app.Pagination, count *int64) ([]*models.User, error) {
-	users := []*models.User{}
+	var users []*models.User
 	offset := (pagination.Page - 1) * pagination.Limit
-	queryBuilder := repo.Preload("Products.Uploader").Preload(clause.Associations).Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
+	queryBuilder := repo.Preload("Products").Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
 	result := queryBuilder.WithContext(ctx).Find(&users).Limit(-1).Offset(-1).Count(count)
 	if result.Error != nil {
 		return nil, result.Error
@@ -43,8 +42,8 @@ func (repo UserRepository) GetAllUser(ctx context.Context, pagination app.Pagina
 }
 
 func (repo UserRepository) GetByUserId(ctx context.Context, id uint) (*models.User, error) {
-	user := models.User{}
-	result := repo.WithContext(ctx).Preload("Products.Uploader").Preload(clause.Associations).First(&user, "users.id = ?", id)
+	var user models.User
+	result := repo.WithContext(ctx).Preload("Products").First(&user, "users.id = ?", id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			panic(errorUtil.DataNotFound("user is not found"))
@@ -56,8 +55,8 @@ func (repo UserRepository) GetByUserId(ctx context.Context, id uint) (*models.Us
 }
 
 func (repo UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
-	user := models.User{}
-	result := repo.WithContext(ctx).Preload(clause.Associations).First(&user, "email = ?", email)
+	var user models.User
+	result := repo.WithContext(ctx).First(&user, "email = ?", email)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			panic(errorUtil.DataNotFound("user is not found"))

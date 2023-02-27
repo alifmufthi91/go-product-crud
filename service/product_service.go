@@ -48,7 +48,7 @@ func (ps ProductService) GetAll(pagination app.Pagination) app.PaginatedResult[r
 
 	var productDatas []response.GetProductResponse
 	for _, x := range products {
-		productDatas = append(productDatas, response.NewGetProductResponse(*x))
+		productDatas = append(productDatas, *response.NewGetProductResponse(x))
 	}
 
 	return app.PaginatedResult[response.GetProductResponse]{
@@ -71,7 +71,7 @@ func (ps ProductService) GetById(productId uint) response.GetProductResponse {
 		panic(err)
 	}
 
-	return response.NewGetProductResponse(*product)
+	return *response.NewGetProductResponse(product)
 }
 
 func (ps ProductService) AddProduct(productInput request.ProductAddRequest, userId uint) response.GetProductResponse {
@@ -97,7 +97,7 @@ func (ps ProductService) AddProduct(productInput request.ProductAddRequest, user
 		panic(err)
 	}
 
-	return response.NewGetProductResponse(*createdProduct)
+	return *response.NewGetProductResponse(createdProduct)
 }
 
 func (ps ProductService) UpdateProduct(productId uint, productInput request.ProductUpdateRequest, userId uint) response.GetProductResponse {
@@ -123,7 +123,7 @@ func (ps ProductService) UpdateProduct(productId uint, productInput request.Prod
 		panic(err)
 	}
 
-	return response.NewGetProductResponse(*updatedProduct)
+	return *response.NewGetProductResponse(updatedProduct)
 }
 
 func (ps ProductService) DeleteProduct(productId uint, userId uint) {

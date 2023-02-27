@@ -113,9 +113,6 @@ func (s *UserRepositorySuite) TestUserRepositoryGetByUserId() {
 	const expectProductAssociated = "SELECT * FROM `products` WHERE `products`.`uploader_id` = ? AND `products`.`deleted_at` IS NULL"
 	s.mock.ExpectQuery(regexp.QuoteMeta(expectProductAssociated)).WithArgs(product.UploaderId).WillReturnRows(productRows)
 
-	const expectUserAssociated = "SELECT * FROM `users` WHERE `users`.`id` = ? AND `users`.`deleted_at` IS NULL"
-	s.mock.ExpectQuery(regexp.QuoteMeta(expectUserAssociated)).WithArgs(product.UploaderId).WillReturnRows(userRows)
-
 	res, err := s.repository.GetByUserId(context.Background(), 1)
 	require.NoError(s.T(), err)
 	require.Nil(s.T(), deep.Equal(user, *res))
@@ -188,9 +185,6 @@ func (s *UserRepositorySuite) TestUserRepositoryGetAll() {
 
 	const expectProductAssociated = "SELECT * FROM `products` WHERE `products`.`uploader_id` = ? AND `products`.`deleted_at` IS NULL"
 	s.mock.ExpectQuery(regexp.QuoteMeta(expectProductAssociated)).WithArgs(product.UploaderId).WillReturnRows(productRows)
-
-	const expectUserAssociated = "SELECT * FROM `users` WHERE `users`.`id` = ? AND `users`.`deleted_at` IS NULL"
-	s.mock.ExpectQuery(regexp.QuoteMeta(expectUserAssociated)).WithArgs(product.UploaderId).WillReturnRows(userRows)
 
 	const expectCount = "SELECT count(*) FROM `users` WHERE `users`.`deleted_at` IS NULL"
 	s.mock.ExpectQuery(regexp.QuoteMeta(expectCount)).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))

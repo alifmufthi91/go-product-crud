@@ -8,12 +8,12 @@ import (
 )
 
 type GetProductResponse struct {
-	ID                 uint            `json:"product_id"`
-	ProductName        string          `json:"product_name"`
-	ProductDescription string          `json:"product_description"`
-	Photo              string          `json:"photo"`
-	UploaderId         uint            `json:"uploader_id"`
-	Uploader           GetUserResponse `json:"uploader,omitempty"`
+	ID                 uint             `json:"product_id"`
+	ProductName        string           `json:"product_name"`
+	ProductDescription string           `json:"product_description"`
+	Photo              string           `json:"photo"`
+	UploaderId         uint             `json:"uploader_id"`
+	Uploader           *GetUserResponse `json:"uploader,omitempty"`
 }
 
 func (res GetProductResponse) MarshalBinary() ([]byte, error) {
@@ -24,8 +24,11 @@ func (res GetProductResponse) IsEmpty() bool {
 	return cmp.Equal(res, GetProductResponse{})
 }
 
-func NewGetProductResponse(p models.Product) GetProductResponse {
-	return GetProductResponse{
+func NewGetProductResponse(p *models.Product) *GetProductResponse {
+	if p == nil {
+		return nil
+	}
+	return &GetProductResponse{
 		ID:                 p.ID,
 		ProductName:        p.ProductName,
 		ProductDescription: p.ProductDescription,

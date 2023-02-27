@@ -12,7 +12,7 @@ type GetUserResponse struct {
 	FirstName string               `json:"first_name"`
 	LastName  string               `json:"last_name"`
 	Email     string               `json:"email"`
-	Products  []GetProductResponse `json:"products,omitempty"`
+	Products  []GetProductResponse `json:"products"`
 }
 
 func (res GetUserResponse) MarshalBinary() ([]byte, error) {
@@ -23,12 +23,15 @@ func (res GetUserResponse) IsEmpty() bool {
 	return cmp.Equal(res, GetUserResponse{})
 }
 
-func NewGetUserResponse(u models.User) GetUserResponse {
-	var productDatas []GetProductResponse
-	for _, product := range u.Products {
-		productDatas = append(productDatas, NewGetProductResponse(product))
+func NewGetUserResponse(u *models.User) *GetUserResponse {
+	if u == nil {
+		return nil
 	}
-	return GetUserResponse{
+	productDatas := []GetProductResponse{}
+	for _, product := range u.Products {
+		productDatas = append(productDatas, *NewGetProductResponse(&product))
+	}
+	return &GetUserResponse{
 		ID:        u.ID,
 		Email:     u.Email,
 		FirstName: u.FirstName,

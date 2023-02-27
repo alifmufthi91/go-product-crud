@@ -12,7 +12,7 @@ type Product struct {
 	ProductDescription string
 	Photo              string `gorm:"type:varchar(100)"`
 	UploaderId         uint
-	Uploader           User `gorm:"foreignKey:UploaderId"`
+	Uploader           *User `gorm:"foreignKey:UploaderId"`
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 	DeletedAt          gorm.DeletedAt `gorm:"index"`
