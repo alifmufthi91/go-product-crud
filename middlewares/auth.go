@@ -31,7 +31,7 @@ func Auth(c *gin.Context) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return []byte(config.Env.JWTSECRET), nil
+		return []byte(config.GetEnv().JWTSECRET), nil
 	})
 
 	if token != nil && err == nil {

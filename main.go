@@ -1,18 +1,25 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"product-crud/cache"
 	"product-crud/config"
 	"product-crud/database"
+	"product-crud/migrations"
 	"product-crud/repository"
 	"product-crud/server"
 	"product-crud/service"
 	"product-crud/util/logger"
 )
 
+var (
+	migrate = flag.Bool("migrate", false, "auto migrate the data models")
+)
+
 func main() {
-	// logger.Init()
+	flag.Parse()
+	logger.Init()
 	var env = config.GetEnv()
 
 	db := database.DBConnection()
@@ -25,10 +32,13 @@ func main() {
 
 	cache.InitCache(redis)
 
+	if *migrate {
+		migrations.Migrate()
+	}
+
 	logger.Info("Starting server..")
 
 	r := server.NewRouter(db, userRepository, productRepository, userService, productService)
-	// migrations.Migrate()
 	logger.Info(fmt.Sprintf("Running Server on Port: %s", env.Port))
 	err := r.Run(fmt.Sprintf("localhost:%s", env.Port))
 	if err != nil {

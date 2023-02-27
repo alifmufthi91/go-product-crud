@@ -46,21 +46,18 @@ func (ps ProductService) GetAll(pagination app.Pagination) app.PaginatedResult[r
 		panic(err)
 	}
 
-	logger.Info(`count: %+d`, count)
 	var productDatas []response.GetProductResponse
 	for _, x := range products {
 		productDatas = append(productDatas, response.NewGetProductResponse(*x))
 	}
 
-	paginatedResult := app.PaginatedResult[response.GetProductResponse]{
+	return app.PaginatedResult[response.GetProductResponse]{
 		Items:      productDatas,
 		Page:       pagination.Page,
 		Size:       len(productDatas),
 		TotalItems: int(count),
 		TotalPage:  int(math.Ceil(float64(count) / float64(pagination.Limit))),
 	}
-
-	return paginatedResult
 }
 
 func (ps ProductService) GetById(productId uint) response.GetProductResponse {

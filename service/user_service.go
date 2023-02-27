@@ -44,7 +44,7 @@ func (us UserService) GetAll(pagination app.Pagination) app.PaginatedResult[resp
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	users, err := us.userRepository.GetAllUser(ctx, &pagination, &count)
+	users, err := us.userRepository.GetAllUser(ctx, pagination, &count)
 	if err != nil {
 		panic(err)
 	}
@@ -53,15 +53,13 @@ func (us UserService) GetAll(pagination app.Pagination) app.PaginatedResult[resp
 	for _, x := range users {
 		userDatas = append(userDatas, response.NewGetUserResponse(*x))
 	}
-	paginatedResult := app.PaginatedResult[response.GetUserResponse]{
+	return app.PaginatedResult[response.GetUserResponse]{
 		Items:      userDatas,
 		Page:       pagination.Page,
 		Size:       len(userDatas),
 		TotalItems: int(count),
 		TotalPage:  int(math.Ceil(float64(count) / float64(pagination.Limit))),
 	}
-
-	return paginatedResult
 }
 
 func (us UserService) GetById(userId uint) response.GetUserResponse {
@@ -139,7 +137,7 @@ func (us UserService) Login(userInput request.UserLoginRequest) string {
 			Issuer:    "test",
 		},
 	})
-	token, err := sign.SignedString([]byte(config.Env.JWTSECRET))
+	token, err := sign.SignedString([]byte(config.GetEnv().JWTSECRET))
 	if err != nil {
 		panic(err)
 	}

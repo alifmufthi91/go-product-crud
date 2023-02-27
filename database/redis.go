@@ -16,7 +16,7 @@ var (
 
 func RedisConnection() *redis.Client {
 	redisConnOnce.Do(func() {
-		var env = config.Env
+		var env = config.GetEnv()
 		redisHost := env.RedisHost
 		redisPort := env.RedisPort
 		redisPassword := env.RedisPassword

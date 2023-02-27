@@ -45,9 +45,15 @@ func (uc UserController) GetAllUser(c *gin.Context) {
 
 	logger.Info("Get all user request")
 
-	pagination := util.GeneratePaginationFromRequest(c)
-	hash := util.HashFromStruct(pagination)
-	key := "GetAllUser:all:" + hash
+	pagination, err := util.GeneratePaginationFromRequest(c)
+	if err != nil {
+		panic(err)
+	}
+	hash, err := util.HashFromStruct(pagination)
+	if err != nil {
+		panic(err)
+	}
+	key := "GetAllUser:all:" + *hash
 
 	var users app.PaginatedResult[resp.GetUserResponse]
 	ctx, cancel := context.WithTimeout(c, 3*time.Second)
@@ -63,7 +69,7 @@ func (uc UserController) GetAllUser(c *gin.Context) {
 	if !users.IsEmpty() {
 		isFromCache = true
 	} else {
-		users = uc.userService.GetAll(pagination)
+		users = uc.userService.GetAll(*pagination)
 		go func() {
 			ctx, cancel := context.WithTimeout(c, 3*time.Second)
 			defer cancel()

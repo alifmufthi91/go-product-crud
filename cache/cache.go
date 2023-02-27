@@ -19,7 +19,15 @@ var (
 )
 
 func InitCache(redis *redis.Client) {
+	logger.Info("Initializing redis cache client..")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	redisClient = redis
+	if _, err := redisClient.Ping(ctx).Result(); err != nil {
+		logger.Error(err.Error())
+	}
 }
 
 func Set(ctx context.Context, key string, value interface{}) error {
