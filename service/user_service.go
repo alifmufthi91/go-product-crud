@@ -100,7 +100,7 @@ func (us UserService) Register(userInput request.UserRegisterRequest) response.G
 		FirstName: userInput.FirstName,
 		LastName:  userInput.LastName,
 		Email:     userInput.Email,
-		Password:  bv,
+		Password:  hasher.Sum(nil),
 	}
 
 	createdUser, err := us.userRepository.AddUser(ctx, user)
@@ -124,7 +124,7 @@ func (us UserService) Login(userInput request.UserLoginRequest) string {
 	hasher := sha256.New()
 	hasher.Write(bv)
 
-	if !bytes.Equal(user.Password, bv) {
+	if !bytes.Equal(user.Password, hasher.Sum(nil)) {
 		panic(errorUtil.ParamIllegal("user password is incorrect"))
 	}
 

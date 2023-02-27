@@ -3,8 +3,10 @@ package response
 import (
 	"encoding/json"
 	"product-crud/models"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"gorm.io/gorm"
 )
 
 type GetUserResponse struct {
@@ -13,6 +15,9 @@ type GetUserResponse struct {
 	LastName  string               `json:"last_name"`
 	Email     string               `json:"email"`
 	Products  []GetProductResponse `json:"products"`
+	CreatedAt time.Time            `json:"created_at"`
+	UpdatedAt time.Time            `json:"updated_at"`
+	DeletedAt gorm.DeletedAt       `json:"deleted_at"`
 }
 
 func (res GetUserResponse) MarshalBinary() ([]byte, error) {
@@ -37,5 +42,8 @@ func NewGetUserResponse(u *models.User) *GetUserResponse {
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
 		Products:  productDatas,
+		CreatedAt: u.CreatedAt,
+		UpdatedAt: u.UpdatedAt,
+		DeletedAt: u.DeletedAt,
 	}
 }

@@ -2,13 +2,13 @@ package repository_test
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"product-crud/dto/app"
 	"product-crud/models"
 	"product-crud/repository"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/go-test/deep"
 
@@ -45,28 +45,17 @@ func (s *UserRepositorySuite) SetupSuite() {
 	s.repository = repository.NewUserRepository(s.DB)
 }
 
+func (s *UserRepositorySuite) AfterTest(_, _ string) {
+	require.NoError(s.T(), s.mock.ExpectationsWereMet())
+}
+
 func (s *UserRepositorySuite) TestUserRepositoryGetByUserId() {
 
-	product := models.Product{
-		ID:                 1,
-		ProductName:        "test",
-		ProductDescription: "test",
-		Photo:              "test.jpg",
-		UploaderId:         1,
-		CreatedAt:          time.Now(),
-		UpdatedAt:          time.Now(),
-		DeletedAt:          gorm.DeletedAt{},
-	}
-
 	user := models.User{
-		ID:        1,
 		FirstName: "Albert",
 		LastName:  "Robb",
 		Email:     "albert@robb@email.com",
-		Products:  []models.Product{product},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		DeletedAt: gorm.DeletedAt{},
+		Products:  nil,
 	}
 
 	userRows := sqlmock.NewRows([]string{
@@ -87,59 +76,20 @@ func (s *UserRepositorySuite) TestUserRepositoryGetByUserId() {
 		user.DeletedAt,
 	)
 
-	productRows := sqlmock.NewRows([]string{
-		"id",
-		"product_name",
-		"product_description",
-		"photo",
-		"uploader_id",
-		"created_at",
-		"updated_at",
-		"deleted_at",
-	}).AddRow(
-		product.ID,
-		product.ProductName,
-		product.ProductDescription,
-		product.Photo,
-		product.UploaderId,
-		product.CreatedAt,
-		product.UpdatedAt,
-		product.DeletedAt,
-	)
-
 	const expectUser = "SELECT * FROM `users` WHERE users.id = ? AND `users`.`deleted_at` IS NULL"
-	s.mock.ExpectQuery(regexp.QuoteMeta(expectUser)).WithArgs(user.ID).WillReturnRows(userRows)
-
-	const expectProductAssociated = "SELECT * FROM `products` WHERE `products`.`uploader_id` = ? AND `products`.`deleted_at` IS NULL"
-	s.mock.ExpectQuery(regexp.QuoteMeta(expectProductAssociated)).WithArgs(product.UploaderId).WillReturnRows(productRows)
+	s.mock.ExpectQuery(regexp.QuoteMeta(expectUser)).WithArgs(1).WillReturnRows(userRows)
 
 	res, err := s.repository.GetByUserId(context.Background(), 1)
 	require.NoError(s.T(), err)
 	require.Nil(s.T(), deep.Equal(user, *res))
 }
 
-func (s *UserRepositorySuite) TestUserRepositoryGetAll() {
-
-	product := models.Product{
-		ID:                 1,
-		ProductName:        "test",
-		ProductDescription: "test",
-		Photo:              "test.jpg",
-		UploaderId:         1,
-		CreatedAt:          time.Now(),
-		UpdatedAt:          time.Now(),
-		DeletedAt:          gorm.DeletedAt{},
-	}
+func (s *UserRepositorySuite) TestUserRepositoryGetByEmail() {
 
 	user := models.User{
-		ID:        1,
 		FirstName: "Albert",
 		LastName:  "Robb",
 		Email:     "albert@robb@email.com",
-		Products:  []models.Product{product},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		DeletedAt: gorm.DeletedAt{},
 	}
 
 	userRows := sqlmock.NewRows([]string{
@@ -160,31 +110,43 @@ func (s *UserRepositorySuite) TestUserRepositoryGetAll() {
 		user.DeletedAt,
 	)
 
-	productRows := sqlmock.NewRows([]string{
+	const expectUser = "SELECT * FROM `users` WHERE email = ? AND `users`.`deleted_at` IS NULL"
+	s.mock.ExpectQuery(regexp.QuoteMeta(expectUser)).WithArgs(user.Email).WillReturnRows(userRows)
+
+	res, err := s.repository.GetByEmail(context.Background(), "albert@robb@email.com")
+	require.NoError(s.T(), err)
+	require.Nil(s.T(), deep.Equal(user, *res))
+}
+
+func (s *UserRepositorySuite) TestUserRepositoryGetAll() {
+
+	user := models.User{
+		FirstName: "Albert",
+		LastName:  "Robb",
+		Email:     "albert@robb@email.com",
+		Products:  nil,
+	}
+
+	userRows := sqlmock.NewRows([]string{
 		"id",
-		"product_name",
-		"product_description",
-		"photo",
-		"uploader_id",
+		"first_name",
+		"last_name",
+		"email",
 		"created_at",
 		"updated_at",
 		"deleted_at",
 	}).AddRow(
-		product.ID,
-		product.ProductName,
-		product.ProductDescription,
-		product.Photo,
-		product.UploaderId,
-		product.CreatedAt,
-		product.UpdatedAt,
-		product.DeletedAt,
+		user.ID,
+		user.FirstName,
+		user.LastName,
+		user.Email,
+		user.CreatedAt,
+		user.UpdatedAt,
+		user.DeletedAt,
 	)
 
 	const expectUser = "SELECT * FROM `users` WHERE `users`.`deleted_at` IS NULL ORDER BY created_at asc LIMIT 5"
 	s.mock.ExpectQuery(regexp.QuoteMeta(expectUser)).WillReturnRows(userRows)
-
-	const expectProductAssociated = "SELECT * FROM `products` WHERE `products`.`uploader_id` = ? AND `products`.`deleted_at` IS NULL"
-	s.mock.ExpectQuery(regexp.QuoteMeta(expectProductAssociated)).WithArgs(product.UploaderId).WillReturnRows(productRows)
 
 	const expectCount = "SELECT count(*) FROM `users` WHERE `users`.`deleted_at` IS NULL"
 	s.mock.ExpectQuery(regexp.QuoteMeta(expectCount)).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
@@ -200,6 +162,39 @@ func (s *UserRepositorySuite) TestUserRepositoryGetAll() {
 	require.Nil(s.T(), deep.Equal([]*models.User{&user}, res))
 }
 
-func (s *UserRepositorySuite) AfterTest(_, _ string) {
-	require.NoError(s.T(), s.mock.ExpectationsWereMet())
+func (s *UserRepositorySuite) TestUserRepositoryIsExistingEmail() {
+
+	existRows := sqlmock.NewRows([]string{
+		"count(*) > 0",
+	}).AddRow(
+		true,
+	)
+
+	const expectUser = "SELECT count(*) > 0 FROM `users` WHERE email = ? AND `users`.`deleted_at` IS NULL"
+	s.mock.ExpectQuery(regexp.QuoteMeta(expectUser)).WithArgs("albert@robb@email.com").WillReturnRows(existRows)
+
+	res, err := s.repository.IsExistingEmail(context.Background(), "albert@robb@email.com")
+	require.NoError(s.T(), err)
+	require.Nil(s.T(), deep.Equal(true, *res))
+}
+
+func (s *UserRepositorySuite) TestUserRepositoryAddUser() {
+
+	bv := []byte("password")
+	hasher := sha256.New()
+	hasher.Write(bv)
+
+	user := models.User{
+		FirstName: "Albert",
+		LastName:  "Robb",
+		Email:     "albert@robb@email.com",
+		Password:  hasher.Sum(nil),
+	}
+
+	s.mock.ExpectBegin()
+	s.mock.ExpectExec("INSERT INTO `users`").WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), user.FirstName, user.LastName, user.Email, user.Password).WillReturnResult(sqlmock.NewResult(1, 1))
+	s.mock.ExpectCommit()
+
+	_, err := s.repository.AddUser(context.Background(), user)
+	require.NoError(s.T(), err)
 }
