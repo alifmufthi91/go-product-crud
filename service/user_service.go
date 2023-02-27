@@ -86,10 +86,13 @@ func (us UserService) Register(userInput request.UserRegisterRequest) response.G
 
 	existing, err := us.userRepository.IsExistingEmail(ctx, userInput.Email)
 	if err != nil {
+		logger.Error("Error : %v", err)
 		panic(err)
 	}
 	if *existing {
-		panic(errorUtil.ParamIllegal("email is already exists"))
+		err := errorUtil.ParamIllegal("email is already exists")
+		logger.Error("Error : %v", err)
+		panic(err)
 	}
 
 	bv := []byte(userInput.Password)
@@ -105,6 +108,7 @@ func (us UserService) Register(userInput request.UserRegisterRequest) response.G
 
 	createdUser, err := us.userRepository.AddUser(ctx, user)
 	if err != nil {
+		logger.Error("Error : %v", err)
 		panic(err)
 	}
 	return *response.NewGetUserResponse(createdUser)
@@ -118,6 +122,7 @@ func (us UserService) Login(userInput request.UserLoginRequest) string {
 
 	user, err := us.userRepository.GetByEmail(ctx, userInput.Email)
 	if err != nil {
+		logger.Error("Error : %v", err)
 		panic(err)
 	}
 	bv := []byte(userInput.Password)
@@ -125,7 +130,9 @@ func (us UserService) Login(userInput request.UserLoginRequest) string {
 	hasher.Write(bv)
 
 	if !bytes.Equal(user.Password, hasher.Sum(nil)) {
-		panic(errorUtil.ParamIllegal("user password is incorrect"))
+		err := errorUtil.ParamIllegal("user password is incorrect")
+		logger.Error("Error : %v", err)
+		panic(err)
 	}
 
 	sign := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), app.UserClaims{
@@ -141,6 +148,7 @@ func (us UserService) Login(userInput request.UserLoginRequest) string {
 	})
 	token, err := sign.SignedString([]byte(config.GetEnv().JWTSECRET))
 	if err != nil {
+		logger.Error("Error : %v", err)
 		panic(err)
 	}
 	return token

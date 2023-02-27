@@ -43,6 +43,7 @@ func (ps ProductService) GetAll(pagination app.Pagination) app.PaginatedResult[r
 
 	products, err := ps.productRepository.GetAllProduct(ctx, &pagination, &count)
 	if err != nil {
+		logger.Error("Error : %v", err)
 		panic(err)
 	}
 
@@ -68,6 +69,7 @@ func (ps ProductService) GetById(productId uint) response.GetProductResponse {
 
 	product, err := ps.productRepository.GetByProductId(ctx, productId)
 	if err != nil {
+		logger.Error("Error : %v", err)
 		panic(err)
 	}
 
@@ -82,6 +84,7 @@ func (ps ProductService) AddProduct(productInput request.ProductAddRequest, user
 
 	user, err := ps.userRepository.GetByUserId(ctx, userId)
 	if err != nil {
+		logger.Error("Error : %v", err)
 		panic(err)
 	}
 
@@ -94,6 +97,7 @@ func (ps ProductService) AddProduct(productInput request.ProductAddRequest, user
 
 	createdProduct, err := ps.productRepository.AddProduct(ctx, product)
 	if err != nil {
+		logger.Error("Error : %v", err)
 		panic(err)
 	}
 
@@ -108,11 +112,14 @@ func (ps ProductService) UpdateProduct(productId uint, productInput request.Prod
 
 	product, err := ps.productRepository.GetByProductId(ctx, productId)
 	if err != nil {
+		logger.Error("Error : %v", err)
 		panic(err)
 	}
 
 	if product.UploaderId != userId {
-		panic(errorUtil.Unauthorized("user is not allowed to modify this product"))
+		err := errorUtil.Unauthorized("user is not allowed to modify this product")
+		logger.Error("Error : %v", err)
+		panic(err)
 	}
 	product.ProductName = productInput.ProductName
 	product.ProductDescription = productInput.ProductDescription
@@ -120,6 +127,7 @@ func (ps ProductService) UpdateProduct(productId uint, productInput request.Prod
 
 	updatedProduct, err := ps.productRepository.UpdateProduct(ctx, *product)
 	if err != nil {
+		logger.Error("Error : %v", err)
 		panic(err)
 	}
 
@@ -134,14 +142,18 @@ func (ps ProductService) DeleteProduct(productId uint, userId uint) {
 
 	product, err := ps.productRepository.GetByProductId(ctx, productId)
 	if err != nil {
+		logger.Error("Error : %v", err)
 		panic(err)
 	}
 
 	if product.UploaderId != userId {
-		panic(errorUtil.Unauthorized("user is not allowed to modify this product"))
+		err := errorUtil.Unauthorized("user is not allowed to modify this product")
+		logger.Error("Error : %v", err)
+		panic(err)
 	}
 
 	if err := ps.productRepository.DeleteProduct(ctx, productId); err != nil {
+		logger.Error("Error : %v", err)
 		panic(err)
 	}
 }
