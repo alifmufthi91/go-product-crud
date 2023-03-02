@@ -49,7 +49,7 @@ func (s *UserRepositorySuite) AfterTest(_, _ string) {
 	require.NoError(s.T(), s.mock.ExpectationsWereMet())
 }
 
-func (s *UserRepositorySuite) TestUserRepositoryGetByUserId() {
+func (s *UserRepositorySuite) TestUserRepository_GetByUserId() {
 
 	user := models.User{
 		FirstName: "Albert",
@@ -84,7 +84,7 @@ func (s *UserRepositorySuite) TestUserRepositoryGetByUserId() {
 	require.Nil(s.T(), deep.Equal(user, *res))
 }
 
-func (s *UserRepositorySuite) TestUserRepositoryGetByEmail() {
+func (s *UserRepositorySuite) TestUserRepository_GetByEmail() {
 
 	user := models.User{
 		FirstName: "Albert",
@@ -118,7 +118,7 @@ func (s *UserRepositorySuite) TestUserRepositoryGetByEmail() {
 	require.Nil(s.T(), deep.Equal(user, *res))
 }
 
-func (s *UserRepositorySuite) TestUserRepositoryGetAll() {
+func (s *UserRepositorySuite) TestUserRepository_GetAll() {
 
 	user := models.User{
 		FirstName: "Albert",
@@ -162,7 +162,7 @@ func (s *UserRepositorySuite) TestUserRepositoryGetAll() {
 	require.Nil(s.T(), deep.Equal([]*models.User{&user}, res))
 }
 
-func (s *UserRepositorySuite) TestUserRepositoryIsExistingEmail() {
+func (s *UserRepositorySuite) TestUserRepository_IsExistingEmail() {
 
 	existRows := sqlmock.NewRows([]string{
 		"count(*) > 0",
@@ -178,7 +178,7 @@ func (s *UserRepositorySuite) TestUserRepositoryIsExistingEmail() {
 	require.Nil(s.T(), deep.Equal(true, *res))
 }
 
-func (s *UserRepositorySuite) TestUserRepositoryAddUser() {
+func (s *UserRepositorySuite) TestUserRepository_AddUser() {
 
 	bv := []byte("password")
 	hasher := sha256.New()

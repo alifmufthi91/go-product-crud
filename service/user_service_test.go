@@ -17,8 +17,8 @@ import (
 
 type UserServiceSuite struct {
 	suite.Suite
-	repo    *repository.MockUserRepository
-	service service.UserService
+	userRepository *repository.MockUserRepository
+	userService    service.UserService
 }
 
 func TestUserServiceSuite(t *testing.T) {
@@ -26,15 +26,15 @@ func TestUserServiceSuite(t *testing.T) {
 }
 
 func (s *UserServiceSuite) SetupSuite() {
-	s.repo = new(repository.MockUserRepository)
-	s.service = service.NewUserService(s.repo)
+	s.userRepository = new(repository.MockUserRepository)
+	s.userService = service.NewUserService(s.userRepository)
 }
 
 func (s *UserServiceSuite) AfterTest(_, _ string) {
-	s.repo.AssertExpectations(s.T())
+	s.userRepository.AssertExpectations(s.T())
 }
 
-func (s *UserServiceSuite) TestUserServiceRegisterUser() {
+func (s *UserServiceSuite) TestUserService_RegisterUser() {
 	userRequest := request.UserRegisterRequest{
 		FirstName: "John",
 		LastName:  "Doe",
@@ -62,17 +62,17 @@ func (s *UserServiceSuite) TestUserServiceRegisterUser() {
 
 	// expect success
 	existing := false
-	s.repo.On("IsExistingEmail", mock.Anything, userRequest.Email).Return(&existing, nil).Once()
-	s.repo.On("AddUser", mock.Anything, user).Return(&user, nil).Once()
-	newUser, err := s.service.Register(userRequest)
+	s.userRepository.On("IsExistingEmail", mock.Anything, userRequest.Email).Return(&existing, nil).Once()
+	s.userRepository.On("AddUser", mock.Anything, user).Return(&user, nil).Once()
+	newUser, err := s.userService.Register(userRequest)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), response, *newUser)
 
 	// expect error because email is existed
 	existing = true
 	expectedErr := errors.New("email is already exist")
-	s.repo.On("IsExistingEmail", mock.Anything, user.Email).Return(&existing, expectedErr).Once()
-	newUser, err = s.service.Register(userRequest)
+	s.userRepository.On("IsExistingEmail", mock.Anything, user.Email).Return(&existing, expectedErr).Once()
+	newUser, err = s.userService.Register(userRequest)
 	require.Error(s.T(), err, expectedErr.Error())
 	require.Nil(s.T(), newUser)
 
@@ -80,9 +80,9 @@ func (s *UserServiceSuite) TestUserServiceRegisterUser() {
 	existing = false
 	var emptyUser *models.User
 	expectedErr = errors.New("error happen during add user")
-	s.repo.On("IsExistingEmail", mock.Anything, user.Email).Return(&existing, nil).Once()
-	s.repo.On("AddUser", mock.Anything, user).Return(emptyUser, expectedErr).Once()
-	newUser, err = s.service.Register(userRequest)
+	s.userRepository.On("IsExistingEmail", mock.Anything, user.Email).Return(&existing, nil).Once()
+	s.userRepository.On("AddUser", mock.Anything, user).Return(emptyUser, expectedErr).Once()
+	newUser, err = s.userService.Register(userRequest)
 	require.Error(s.T(), err, expectedErr.Error())
 	require.Nil(s.T(), newUser)
 }
