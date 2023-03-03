@@ -15,6 +15,7 @@ type IUserRepository interface {
 	GetByUserId(ctx context.Context, userId uint) (*models.User, error)
 	GetByEmail(ctx context.Context, email string) (*models.User, error)
 	AddUser(ctx context.Context, user models.User) (*models.User, error)
+	UpdateUser(ctx context.Context, user models.User) (*models.User, error)
 	IsExistingEmail(ctx context.Context, email string) (*bool, error)
 }
 
@@ -78,6 +79,15 @@ func (repo UserRepository) IsExistingEmail(ctx context.Context, email string) (*
 
 func (repo UserRepository) AddUser(ctx context.Context, user models.User) (*models.User, error) {
 	result := repo.WithContext(ctx).Create(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &user, nil
+}
+
+func (repo UserRepository) UpdateUser(ctx context.Context, user models.User) (*models.User, error) {
+	result := repo.WithContext(ctx).Save(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}

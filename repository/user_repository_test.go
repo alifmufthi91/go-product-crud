@@ -27,7 +27,7 @@ type UserRepositorySuite struct {
 	suite.Suite
 	DB         *gorm.DB
 	mock       sqlmock.Sqlmock
-	repository repository.UserRepository
+	repository repository.IUserRepository
 }
 
 func (s *UserRepositorySuite) SetupSuite() {
@@ -196,5 +196,26 @@ func (s *UserRepositorySuite) TestUserRepositoryAddUser() {
 	s.mock.ExpectCommit()
 
 	_, err := s.repository.AddUser(context.Background(), user)
+	require.NoError(s.T(), err)
+}
+
+func (s *UserRepositorySuite) TestUserRepositoryUpdateUser() {
+
+	bv := []byte("password")
+	hasher := sha256.New()
+	hasher.Write(bv)
+
+	user := models.User{
+		FirstName: "Albert",
+		LastName:  "Rax",
+		Email:     "albert@robb@email.com",
+		Password:  hasher.Sum(nil),
+	}
+
+	s.mock.ExpectBegin()
+	s.mock.ExpectExec("INSERT INTO `users`").WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), user.FirstName, user.LastName, user.Email, user.Password).WillReturnResult(sqlmock.NewResult(1, 1))
+	s.mock.ExpectCommit()
+
+	_, err := s.repository.UpdateUser(context.Background(), user)
 	require.NoError(s.T(), err)
 }
