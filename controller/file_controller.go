@@ -28,8 +28,7 @@ func NewFileController() FileController {
 }
 
 func (fc FileController) Upload(c *gin.Context) {
-	defer responseUtil.ErrorHandling(c)
-
+	logger.Info(`Upload file request`)
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
 		logger.Error("Error : %v", err)
@@ -65,8 +64,6 @@ func (fc FileController) Upload(c *gin.Context) {
 }
 
 func (fc FileController) Download(c *gin.Context) {
-	defer responseUtil.ErrorHandling(c)
-
 	newpath := filepath.Join(config.Env.FilePath, "public")
 	filename := c.Param("name")
 	if _, err := os.Stat(newpath + "/" + filename); errors.Is(err, os.ErrNotExist) {

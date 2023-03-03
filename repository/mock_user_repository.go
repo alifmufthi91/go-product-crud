@@ -36,3 +36,8 @@ func (m *MockUserRepository) IsExistingEmail(ctx context.Context, email string) 
 	args := m.Called(ctx, email)
 	return args.Get(0).(*bool), args.Error(1)
 }
+
+func (m *MockUserRepository) UpdateUser(ctx context.Context, user models.User) (*models.User, error) {
+	args := m.Called(ctx, user)
+	return args.Get(0).(*models.User), args.Error(1)
+}
