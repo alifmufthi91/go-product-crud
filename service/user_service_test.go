@@ -18,7 +18,7 @@ import (
 type UserServiceSuite struct {
 	suite.Suite
 	userRepository *repository.MockUserRepository
-	userService    service.UserService
+	userService    service.IUserService
 }
 
 func TestUserServiceSuite(t *testing.T) {
