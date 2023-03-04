@@ -25,6 +25,8 @@ func NewRouter(
 	router.Use(gin.Logger())
 	router.Use(cors.Default())
 
+	router.Use(middlewares.ErrorHandlingMiddleware())
+
 	api := router.Group("api")
 	{
 		users := api.Group("users")

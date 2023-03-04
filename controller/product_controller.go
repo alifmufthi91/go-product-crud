@@ -37,8 +37,6 @@ func NewProductController(productService service.IProductService) ProductControl
 }
 
 func (pc ProductController) GetAllProduct(c *gin.Context) {
-	defer responseUtil.ErrorHandling(c)
-
 	logger.Info("Get all product request")
 	pagination, err := util.GeneratePaginationFromRequest(c)
 	if err != nil {
@@ -85,8 +83,6 @@ func (pc ProductController) GetAllProduct(c *gin.Context) {
 }
 
 func (pc ProductController) GetProductById(c *gin.Context) {
-	defer responseUtil.ErrorHandling(c)
-
 	logger.Info(`Get product by id request, id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -130,8 +126,6 @@ func (pc ProductController) GetProductById(c *gin.Context) {
 }
 
 func (pc ProductController) AddProduct(c *gin.Context) {
-	defer responseUtil.ErrorHandling(c)
-
 	logger.Info(`Add new product request`)
 	var request request.ProductAddRequest
 	err := c.ShouldBindJSON(&request)
@@ -152,8 +146,6 @@ func (pc ProductController) AddProduct(c *gin.Context) {
 }
 
 func (pc ProductController) UpdateProduct(c *gin.Context) {
-	defer responseUtil.ErrorHandling(c)
-
 	logger.Info(`Update product of id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -178,8 +170,6 @@ func (pc ProductController) UpdateProduct(c *gin.Context) {
 }
 
 func (pc ProductController) DeleteProduct(c *gin.Context) {
-	defer responseUtil.ErrorHandling(c)
-
 	logger.Info(`Delete product of id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

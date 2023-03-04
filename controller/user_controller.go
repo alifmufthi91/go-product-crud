@@ -41,7 +41,6 @@ func NewUserController(userService service.IUserService) UserController {
 
 func (uc UserController) GetAllUser(c *gin.Context) {
 	atomic.AddUint64(&getAllUserRequestCalled, 1)
-	defer responseUtil.ErrorHandling(c)
 
 	logger.Info("Get all user request")
 
@@ -88,7 +87,6 @@ func (uc UserController) GetAllUser(c *gin.Context) {
 }
 
 func (uc UserController) GetUserById(c *gin.Context) {
-	defer responseUtil.ErrorHandling(c)
 
 	logger.Info(`Get user by id, id = %s`, c.Param("id"))
 	id, err := strconv.Atoi(c.Param("id"))
@@ -135,7 +133,6 @@ func (uc UserController) GetUserById(c *gin.Context) {
 }
 
 func (uc UserController) RegisterUser(c *gin.Context) {
-	defer responseUtil.ErrorHandling(c)
 
 	logger.Info(`Register new user request`)
 	var request request.UserRegisterRequest
@@ -152,7 +149,6 @@ func (uc UserController) RegisterUser(c *gin.Context) {
 }
 
 func (uc UserController) LoginUser(c *gin.Context) {
-	defer responseUtil.ErrorHandling(c)
 
 	logger.Info(`Login User request`)
 	var request request.UserLoginRequest
@@ -169,7 +165,5 @@ func (uc UserController) LoginUser(c *gin.Context) {
 }
 
 func (uc UserController) GetAllUserRequestCounter(c *gin.Context) {
-	defer responseUtil.ErrorHandling(c)
-
 	responseUtil.Ok(c, atomic.LoadUint64(&getAllUserRequestCalled), false)
 }
