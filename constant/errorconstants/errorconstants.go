@@ -1,4 +1,4 @@
-package ERROR_CONSTANT
+package errorconstants
 
 const (
 	INTERNAL_ERROR = "Internal Error"

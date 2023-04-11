@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"product-crud/config"
 	"product-crud/dto/app"
-	errorUtil "product-crud/util/error"
+	"product-crud/util/apiresponse"
+	"product-crud/util/errorhandler"
 	"product-crud/util/logger"
-	responseUtil "product-crud/util/response"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -16,8 +16,8 @@ import (
 func Auth(c *gin.Context) {
 	authHeader := c.Request.Header.Get("Authorization")
 	if !strings.Contains(authHeader, "Bearer") {
-		err := errorUtil.Unauthorized("Internal Error")
-		responseUtil.Fail(c, app.ErrorHttpResponse{
+		err := errorhandler.Unauthorized("Internal Error")
+		apiresponse.Fail(c, app.ErrorHttpResponse{
 			Message:    err.Error(),
 			HttpStatus: err.HttpStatus,
 			ErrorName:  err.ErrorName,
@@ -39,8 +39,8 @@ func Auth(c *gin.Context) {
 		c.Set("user", claims)
 		logger.Info(`token verified, claims = %+v`, claims)
 	} else {
-		err := errorUtil.Unauthorized("Not Authorized")
-		responseUtil.Fail(c, app.ErrorHttpResponse{
+		err := errorhandler.Unauthorized("Not Authorized")
+		apiresponse.Fail(c, app.ErrorHttpResponse{
 			Message:    err.Error(),
 			HttpStatus: err.HttpStatus,
 			ErrorName:  err.ErrorName,

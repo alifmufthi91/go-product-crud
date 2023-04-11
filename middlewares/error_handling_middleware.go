@@ -3,9 +3,9 @@ package middlewares
 import (
 	"net/http"
 	"product-crud/dto/app"
-	errorUtil "product-crud/util/error"
+	"product-crud/util/apiresponse"
+	"product-crud/util/errorhandler"
 	"product-crud/util/logger"
-	responseUtil "product-crud/util/response"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,8 +16,8 @@ func ErrorHandlingMiddleware() gin.HandlerFunc {
 			if r := recover(); r != nil {
 				logger.Error("Recovered from panic: %+v", r)
 				var errorMessage string
-				if err, ok := r.(*errorUtil.CustomError); ok {
-					responseUtil.Fail(c, app.ErrorHttpResponse{
+				if err, ok := r.(*errorhandler.CustomError); ok {
+					apiresponse.Fail(c, app.ErrorHttpResponse{
 						Message:    err.Error(),
 						HttpStatus: err.HttpStatus,
 						ErrorName:  err.ErrorName,
@@ -30,7 +30,7 @@ func ErrorHandlingMiddleware() gin.HandlerFunc {
 				} else {
 					errorMessage = "Internal Error"
 				}
-				responseUtil.Fail(c, app.ErrorHttpResponse{
+				apiresponse.Fail(c, app.ErrorHttpResponse{
 					Message:    errorMessage,
 					HttpStatus: http.StatusInternalServerError,
 					ErrorName:  "INTERNAL SERVER ERROR",

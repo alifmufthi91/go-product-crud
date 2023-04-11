@@ -4,7 +4,7 @@ import (
 	"context"
 	"product-crud/dto/app"
 	"product-crud/models"
-	errorUtil "product-crud/util/error"
+	"product-crud/util/errorhandler"
 	"product-crud/util/logger"
 
 	"gorm.io/gorm"
@@ -48,7 +48,7 @@ func (repo UserRepository) GetByUserId(ctx context.Context, id uint) (app.Nullab
 	result := repo.WithContext(ctx).Preload("Products").First(&user, "users.id = ?", id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			return nullableUser, errorUtil.DataNotFound("user is not found")
+			return nullableUser, errorhandler.DataNotFound("user is not found")
 		}
 		return nullableUser, result.Error
 	}
@@ -62,7 +62,7 @@ func (repo UserRepository) GetByEmail(ctx context.Context, email string) (app.Nu
 	result := repo.WithContext(ctx).First(&user, "email = ?", email)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			return nullableUser, errorUtil.DataNotFound("user is not found")
+			return nullableUser, errorhandler.DataNotFound("user is not found")
 		}
 		return nullableUser, result.Error
 	}

@@ -13,7 +13,7 @@ import (
 	"product-crud/dto/response"
 	"product-crud/models"
 	"product-crud/repository"
-	errorUtil "product-crud/util/error"
+	"product-crud/util/errorhandler"
 	"product-crud/util/logger"
 	"time"
 
@@ -99,7 +99,7 @@ func (us UserService) Register(userInput request.UserRegisterRequest) (response.
 		return result, err
 	}
 	if existing {
-		err := errorUtil.ParamIllegal("email is already exists")
+		err := errorhandler.ParamIllegal("email is already exists")
 		logger.Error("Error : %v", err)
 		return result, err
 	}
@@ -154,7 +154,7 @@ func (us UserService) Login(userInput request.UserLoginRequest) (string, error) 
 	}
 	user := nullableUser.Stuff
 	if !bytes.Equal(user.Password, hasher.Sum(nil)) {
-		err := errorUtil.ParamIllegal("user password is incorrect")
+		err := errorhandler.ParamIllegal("user password is incorrect")
 		logger.Error("Error : %v", err)
 		return token, err
 	}

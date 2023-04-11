@@ -1,4 +1,4 @@
-package responseUtil
+package apiresponse
 
 // func ErrorHandling(c *gin.Context) {
 // 	if r := recover(); r != nil {

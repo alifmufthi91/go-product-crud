@@ -4,7 +4,7 @@ import (
 	"context"
 	"product-crud/dto/app"
 	"product-crud/models"
-	errorUtil "product-crud/util/error"
+	"product-crud/util/errorhandler"
 	"product-crud/util/logger"
 
 	"gorm.io/gorm"
@@ -47,7 +47,7 @@ func (repo ProductRepository) GetByProductId(ctx context.Context, id uint) (app.
 	result := repo.WithContext(ctx).Joins("Uploader").First(&product, "products.id = ?", id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			return nullableProduct, errorUtil.DataNotFound("product is not found")
+			return nullableProduct, errorhandler.DataNotFound("product is not found")
 		}
 		return nullableProduct, result.Error
 	}

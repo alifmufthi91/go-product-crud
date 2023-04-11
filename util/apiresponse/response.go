@@ -1,4 +1,4 @@
-package responseUtil
+package apiresponse
 
 import (
 	"net/http"

@@ -3,14 +3,17 @@ package controller
 import (
 	"context"
 	"product-crud/cache"
-	ERROR_CONSTANT "product-crud/constant/error_constant"
+	"product-crud/constant/errorconstants"
+
 	"product-crud/dto/app"
 	"product-crud/dto/request"
-	resp "product-crud/dto/response"
+	"product-crud/dto/response"
+
 	"product-crud/service"
 	"product-crud/util"
+	"product-crud/util/apiresponse"
 	"product-crud/util/logger"
-	responseUtil "product-crud/util/response"
+
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -54,7 +57,7 @@ func (uc UserController) GetAllUser(c *gin.Context) {
 	}
 	key := "GetAllUser:all:" + hash
 
-	var users app.PaginatedResult[resp.GetUserResponse]
+	var users app.PaginatedResult[response.GetUserResponse]
 	ctx, cancel := context.WithTimeout(c, 3*time.Second)
 	defer cancel()
 	if c.DefaultQuery("no_cache", "0") == "0" {
@@ -83,7 +86,7 @@ func (uc UserController) GetAllUser(c *gin.Context) {
 		}()
 	}
 	logger.Info("Get all user success")
-	responseUtil.Ok(c, users, isFromCache)
+	apiresponse.Ok(c, users, isFromCache)
 }
 
 func (uc UserController) GetUserById(c *gin.Context) {
@@ -93,12 +96,12 @@ func (uc UserController) GetUserById(c *gin.Context) {
 
 	if err != nil {
 		logger.Error("Error : %v", err)
-		panic(ERROR_CONSTANT.INTERNAL_ERROR)
+		panic(errorconstants.INTERNAL_ERROR)
 	}
 
 	key := "GetUserById:" + c.Param("id")
 
-	var user resp.GetUserResponse
+	var user response.GetUserResponse
 	ctx, cancel := context.WithTimeout(c, 3*time.Second)
 	defer cancel()
 	if c.DefaultQuery("no_cache", "0") == "0" {
@@ -129,7 +132,7 @@ func (uc UserController) GetUserById(c *gin.Context) {
 	}
 
 	logger.Info(`Get user by id, id = %s success`, c.Param("id"))
-	responseUtil.Ok(c, user, isFromCache)
+	apiresponse.Ok(c, user, isFromCache)
 }
 
 func (uc UserController) RegisterUser(c *gin.Context) {
@@ -145,7 +148,7 @@ func (uc UserController) RegisterUser(c *gin.Context) {
 		panic(err)
 	}
 	logger.Info(`Register new user success`)
-	responseUtil.Ok(c, user, false)
+	apiresponse.Ok(c, user, false)
 }
 
 func (uc UserController) LoginUser(c *gin.Context) {
@@ -161,9 +164,9 @@ func (uc UserController) LoginUser(c *gin.Context) {
 		panic(err)
 	}
 	logger.Info(`Login User success`)
-	responseUtil.Ok(c, token, false)
+	apiresponse.Ok(c, token, false)
 }
 
 func (uc UserController) GetAllUserRequestCounter(c *gin.Context) {
-	responseUtil.Ok(c, atomic.LoadUint64(&getAllUserRequestCalled), false)
+	apiresponse.Ok(c, atomic.LoadUint64(&getAllUserRequestCalled), false)
 }

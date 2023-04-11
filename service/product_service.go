@@ -9,7 +9,7 @@ import (
 	"product-crud/dto/response"
 	"product-crud/models"
 	"product-crud/repository"
-	errorUtil "product-crud/util/error"
+	"product-crud/util/errorhandler"
 	"product-crud/util/logger"
 	"time"
 )
@@ -130,7 +130,7 @@ func (ps ProductService) UpdateProduct(productId uint, productInput request.Prod
 
 	product := nullableProduct.Stuff
 	if product.UploaderId != userId {
-		err := errorUtil.Unauthorized("user is not allowed to modify this product")
+		err := errorhandler.Unauthorized("user is not allowed to modify this product")
 		logger.Error("Error : %v", err)
 		return result, err
 	}
@@ -169,7 +169,7 @@ func (ps ProductService) DeleteProduct(productId uint, userId uint) error {
 
 	product := nullableProduct.Stuff
 	if product.UploaderId != userId {
-		err := errorUtil.Unauthorized("user is not allowed to modify this product")
+		err := errorhandler.Unauthorized("user is not allowed to modify this product")
 		logger.Error("Error : %v", err)
 		return err
 	}
