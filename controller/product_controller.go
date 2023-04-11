@@ -47,7 +47,7 @@ func (pc ProductController) GetAllProduct(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	key := "GetAllProduct:all:" + *hash
+	key := "GetAllProduct:all:" + hash
 
 	var products app.PaginatedResult[resp.GetProductResponse]
 	ctx, cancel := context.WithTimeout(c, 3*time.Second)
@@ -63,11 +63,11 @@ func (pc ProductController) GetAllProduct(c *gin.Context) {
 	if !products.IsEmpty() {
 		isFromCache = true
 	} else {
-		val, err := pc.productService.GetAll(*pagination)
+		val, err := pc.productService.GetAll(pagination)
 		if err != nil {
 			panic(err)
 		}
-		products = *val
+		products = val
 		go func() {
 			ctx, cancel := context.WithTimeout(c, 3*time.Second)
 			defer cancel()
@@ -110,7 +110,7 @@ func (pc ProductController) GetProductById(c *gin.Context) {
 		if err != nil {
 			panic(err)
 		}
-		product = *val
+		product = val
 		go func() {
 			ctx, cancel := context.WithTimeout(c, 3*time.Second)
 			defer cancel()
@@ -142,7 +142,7 @@ func (pc ProductController) AddProduct(c *gin.Context) {
 	}
 
 	logger.Info(`Add new product success`)
-	responseUtil.Ok(c, *product, false)
+	responseUtil.Ok(c, product, false)
 }
 
 func (pc ProductController) UpdateProduct(c *gin.Context) {
@@ -166,7 +166,7 @@ func (pc ProductController) UpdateProduct(c *gin.Context) {
 		panic(err)
 	}
 	logger.Info(`Update product of id = %s success`, c.Param("id"))
-	responseUtil.Ok(c, *product, false)
+	responseUtil.Ok(c, product, false)
 }
 
 func (pc ProductController) DeleteProduct(c *gin.Context) {
@@ -180,8 +180,10 @@ func (pc ProductController) DeleteProduct(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	pc.productService.DeleteProduct(uint(id), user.UserId)
-
+	err = pc.productService.DeleteProduct(uint(id), user.UserId)
+	if err != nil {
+		panic(err)
+	}
 	logger.Info(`Delete product of id = %s success`, c.Param("id"))
 	responseUtil.Ok(c, nil, false)
 }

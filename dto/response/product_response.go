@@ -29,17 +29,19 @@ func (res GetProductResponse) IsEmpty() bool {
 	return cmp.Equal(res, GetProductResponse{})
 }
 
-func NewGetProductResponse(p *models.Product) *GetProductResponse {
-	if p == nil {
-		return nil
+func NewGetProductResponse(p models.Product) GetProductResponse {
+	var productUploader *GetUserResponse
+	if p.Uploader != nil {
+		user := *p.Uploader
+		productUploader = NewGetUserResponse(user).Pointer()
 	}
-	return &GetProductResponse{
+	return GetProductResponse{
 		ID:                 p.ID,
 		ProductName:        p.ProductName,
 		ProductDescription: p.ProductDescription,
 		Photo:              p.Photo,
 		UploaderId:         p.UploaderId,
-		Uploader:           NewGetUserResponse(p.Uploader),
+		Uploader:           productUploader,
 		CreatedAt:          p.CreatedAt,
 		UpdatedAt:          p.UpdatedAt,
 		DeletedAt:          p.DeletedAt,

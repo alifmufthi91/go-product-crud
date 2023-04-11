@@ -7,9 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GeneratePaginationFromRequest(c *gin.Context) (*app.Pagination, error) {
+func GeneratePaginationFromRequest(c *gin.Context) (app.Pagination, error) {
 	// Initializing default
 	//	var mode string
+	var pagination app.Pagination
 	limit := 5
 	page := 1
 	sort := "created_at asc"
@@ -20,23 +21,24 @@ func GeneratePaginationFromRequest(c *gin.Context) (*app.Pagination, error) {
 		case "limit":
 			val, err := strconv.Atoi(queryValue)
 			if err != nil {
-				return nil, err
+				return pagination, err
 			}
 			limit = val
 		case "page":
 			val, err := strconv.Atoi(queryValue)
 			if err != nil {
-				return nil, err
+				return pagination, err
 			}
 			page = val
 		case "sort":
 			sort = queryValue
 		}
 	}
-	return &app.Pagination{
+	pagination = app.Pagination{
 		Limit: limit,
 		Page:  page,
 		Sort:  sort,
-	}, nil
+	}
+	return pagination, nil
 
 }

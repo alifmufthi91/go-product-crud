@@ -52,7 +52,7 @@ func (uc UserController) GetAllUser(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
-	key := "GetAllUser:all:" + *hash
+	key := "GetAllUser:all:" + hash
 
 	var users app.PaginatedResult[resp.GetUserResponse]
 	ctx, cancel := context.WithTimeout(c, 3*time.Second)
@@ -68,11 +68,11 @@ func (uc UserController) GetAllUser(c *gin.Context) {
 	if !users.IsEmpty() {
 		isFromCache = true
 	} else {
-		val, err := uc.userService.GetAll(*pagination)
+		val, err := uc.userService.GetAll(pagination)
 		if err != nil {
 			panic(err)
 		}
-		users = *val
+		users = val
 		go func() {
 			ctx, cancel := context.WithTimeout(c, 3*time.Second)
 			defer cancel()
@@ -117,7 +117,7 @@ func (uc UserController) GetUserById(c *gin.Context) {
 		if err != nil {
 			panic(err)
 		}
-		user = *val
+		user = val
 		go func() {
 			ctx, cancel := context.WithTimeout(c, 3*time.Second)
 			defer cancel()
@@ -145,7 +145,7 @@ func (uc UserController) RegisterUser(c *gin.Context) {
 		panic(err)
 	}
 	logger.Info(`Register new user success`)
-	responseUtil.Ok(c, *user, false)
+	responseUtil.Ok(c, user, false)
 }
 
 func (uc UserController) LoginUser(c *gin.Context) {
@@ -161,7 +161,7 @@ func (uc UserController) LoginUser(c *gin.Context) {
 		panic(err)
 	}
 	logger.Info(`Login User success`)
-	responseUtil.Ok(c, *token, false)
+	responseUtil.Ok(c, token, false)
 }
 
 func (uc UserController) GetAllUserRequestCounter(c *gin.Context) {

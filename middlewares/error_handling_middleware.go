@@ -22,6 +22,7 @@ func ErrorHandlingMiddleware() gin.HandlerFunc {
 						HttpStatus: err.HttpStatus,
 						ErrorName:  err.ErrorName,
 					})
+					return
 				} else if err, ok := r.(error); ok {
 					errorMessage = err.Error()
 				} else if err, ok := r.(string); ok {

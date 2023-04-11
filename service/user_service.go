@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"math"
 	"product-crud/config"
@@ -20,10 +21,10 @@ import (
 )
 
 type IUserService interface {
-	GetAll(pagination app.Pagination) (*app.PaginatedResult[response.GetUserResponse], error)
-	GetById(userId uint) (*response.GetUserResponse, error)
-	Register(userInput request.UserRegisterRequest) (*response.GetUserResponse, error)
-	Login(userInput request.UserLoginRequest) (*string, error)
+	GetAll(pagination app.Pagination) (app.PaginatedResult[response.GetUserResponse], error)
+	GetById(userId uint) (response.GetUserResponse, error)
+	Register(userInput request.UserRegisterRequest) (response.GetUserResponse, error)
+	Login(userInput request.UserLoginRequest) (string, error)
 }
 
 type UserService struct {
@@ -37,62 +38,70 @@ func NewUserService(userRepository repository.IUserRepository) UserService {
 	}
 }
 
-func (us UserService) GetAll(pagination app.Pagination) (*app.PaginatedResult[response.GetUserResponse], error) {
+func (us UserService) GetAll(pagination app.Pagination) (app.PaginatedResult[response.GetUserResponse], error) {
 	logger.Info("Getting all user from repository")
 	var count int64
-
+	var result app.PaginatedResult[response.GetUserResponse]
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	users, err := us.userRepository.GetAllUser(ctx, pagination, &count)
 	if err != nil {
 		logger.Error("Error : %v", err)
-		return nil, err
+		return result, err
 	}
 
 	var userDatas []response.GetUserResponse
 	for _, x := range users {
-		userDatas = append(userDatas, *response.NewGetUserResponse(x))
+		userDatas = append(userDatas, response.NewGetUserResponse(x))
 	}
-	return &app.PaginatedResult[response.GetUserResponse]{
+	result = app.PaginatedResult[response.GetUserResponse]{
 		Items:      userDatas,
 		Page:       pagination.Page,
 		Size:       len(userDatas),
 		TotalItems: int(count),
 		TotalPage:  int(math.Ceil(float64(count) / float64(pagination.Limit))),
-	}, nil
+	}
+	return result, nil
 }
 
-func (us UserService) GetById(userId uint) (*response.GetUserResponse, error) {
+func (us UserService) GetById(userId uint) (response.GetUserResponse, error) {
 	logger.Info("Getting user from repository")
 
+	var result response.GetUserResponse
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	user, err := us.userRepository.GetByUserId(ctx, userId)
+	nullableUser, err := us.userRepository.GetByUserId(ctx, userId)
 	if err != nil {
 		logger.Error("Error : %v", err)
-		return nil, err
+		return result, err
+	}
+	if !nullableUser.Valid {
+		logger.Error("Invalid user")
+		return result, errors.New("Invalid user")
 	}
 
-	return response.NewGetUserResponse(user), nil
+	result = response.NewGetUserResponse(nullableUser.Stuff)
+	return result, nil
 }
 
-func (us UserService) Register(userInput request.UserRegisterRequest) (*response.GetUserResponse, error) {
+func (us UserService) Register(userInput request.UserRegisterRequest) (response.GetUserResponse, error) {
 	logger.Info(`Registering new user, user = %+v`, userInput)
 
+	var result response.GetUserResponse
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	existing, err := us.userRepository.IsExistingEmail(ctx, userInput.Email)
 	if err != nil {
 		logger.Error("Error : %v", err)
-		return nil, err
+		return result, err
 	}
-	if *existing {
+	if existing {
 		err := errorUtil.ParamIllegal("email is already exists")
 		logger.Error("Error : %v", err)
-		return nil, err
+		return result, err
 	}
 
 	bv := []byte(userInput.Password)
@@ -100,7 +109,7 @@ func (us UserService) Register(userInput request.UserRegisterRequest) (*response
 	_, err = hasher.Write(bv)
 	if err != nil {
 		logger.Error("Error : %v", err)
-		return nil, err
+		return result, err
 	}
 
 	user := models.User{
@@ -110,24 +119,30 @@ func (us UserService) Register(userInput request.UserRegisterRequest) (*response
 		Password:  hasher.Sum(nil),
 	}
 
-	createdUser, err := us.userRepository.AddUser(ctx, user)
+	nullableUser, err := us.userRepository.AddUser(ctx, user)
 	if err != nil {
 		logger.Error("Error : %v", err)
-		return nil, err
+		return result, err
 	}
-	return response.NewGetUserResponse(createdUser), nil
+	result = response.NewGetUserResponse(nullableUser.Stuff)
+	return result, nil
 }
 
-func (us UserService) Login(userInput request.UserLoginRequest) (*string, error) {
+func (us UserService) Login(userInput request.UserLoginRequest) (string, error) {
 	logger.Info(`Login user by email, email = %s`, userInput.Email)
 
+	var token string
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	user, err := us.userRepository.GetByEmail(ctx, userInput.Email)
+	nullableUser, err := us.userRepository.GetByEmail(ctx, userInput.Email)
 	if err != nil {
 		logger.Error("Error : %v", err)
-		return nil, err
+		return token, err
+	}
+	if !nullableUser.Valid {
+		logger.Error("Invalid user")
+		return token, errors.New("Invalid user")
 	}
 
 	bv := []byte(userInput.Password)
@@ -135,13 +150,13 @@ func (us UserService) Login(userInput request.UserLoginRequest) (*string, error)
 	_, err = hasher.Write(bv)
 	if err != nil {
 		logger.Error("Error : %v", err)
-		return nil, err
+		return token, err
 	}
-
+	user := nullableUser.Stuff
 	if !bytes.Equal(user.Password, hasher.Sum(nil)) {
 		err := errorUtil.ParamIllegal("user password is incorrect")
 		logger.Error("Error : %v", err)
-		return nil, err
+		return token, err
 	}
 
 	sign := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), app.UserClaims{
@@ -155,12 +170,12 @@ func (us UserService) Login(userInput request.UserLoginRequest) (*string, error)
 			Issuer:    "test",
 		},
 	})
-	token, err := sign.SignedString([]byte(config.GetEnv().JWTSECRET))
+	token, err = sign.SignedString([]byte(config.GetEnv().JWTSECRET))
 	if err != nil {
 		logger.Error("Error : %v", err)
-		return nil, err
+		return token, err
 	}
-	return &token, nil
+	return token, nil
 }
 
 var _ IUserService = (*UserService)(nil)

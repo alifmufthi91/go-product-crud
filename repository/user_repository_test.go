@@ -80,8 +80,9 @@ func (s *UserRepositorySuite) TestUserRepository_GetByUserId() {
 	s.mock.ExpectQuery(regexp.QuoteMeta(expectUser)).WithArgs(1).WillReturnRows(userRows)
 
 	res, err := s.repository.GetByUserId(context.Background(), 1)
+	received := res.Stuff
 	require.NoError(s.T(), err)
-	require.Nil(s.T(), deep.Equal(user, *res))
+	require.Nil(s.T(), deep.Equal(user, received))
 }
 
 func (s *UserRepositorySuite) TestUserRepository_GetByEmail() {
@@ -114,8 +115,9 @@ func (s *UserRepositorySuite) TestUserRepository_GetByEmail() {
 	s.mock.ExpectQuery(regexp.QuoteMeta(expectUser)).WithArgs(user.Email).WillReturnRows(userRows)
 
 	res, err := s.repository.GetByEmail(context.Background(), "albert@robb@email.com")
+	received := res.Stuff
 	require.NoError(s.T(), err)
-	require.Nil(s.T(), deep.Equal(user, *res))
+	require.Nil(s.T(), deep.Equal(user, received))
 }
 
 func (s *UserRepositorySuite) TestUserRepository_GetAll() {
@@ -159,7 +161,7 @@ func (s *UserRepositorySuite) TestUserRepository_GetAll() {
 	var count int64
 	res, err := s.repository.GetAllUser(context.Background(), pagination, &count)
 	require.NoError(s.T(), err)
-	require.Nil(s.T(), deep.Equal([]*models.User{&user}, res))
+	require.Nil(s.T(), deep.Equal([]models.User{user}, res))
 }
 
 func (s *UserRepositorySuite) TestUserRepository_IsExistingEmail() {
@@ -175,7 +177,7 @@ func (s *UserRepositorySuite) TestUserRepository_IsExistingEmail() {
 
 	res, err := s.repository.IsExistingEmail(context.Background(), "albert@robb@email.com")
 	require.NoError(s.T(), err)
-	require.Nil(s.T(), deep.Equal(true, *res))
+	require.Nil(s.T(), deep.Equal(true, res))
 }
 
 func (s *UserRepositorySuite) TestUserRepository_AddUser() {

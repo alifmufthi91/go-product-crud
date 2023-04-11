@@ -28,15 +28,16 @@ func (res GetUserResponse) IsEmpty() bool {
 	return cmp.Equal(res, GetUserResponse{})
 }
 
-func NewGetUserResponse(u *models.User) *GetUserResponse {
-	if u == nil {
-		return nil
-	}
+func (res GetUserResponse) Pointer() *GetUserResponse {
+	return &res
+}
+
+func NewGetUserResponse(u models.User) GetUserResponse {
 	productDatas := []GetProductResponse{}
 	for _, product := range u.Products {
-		productDatas = append(productDatas, *NewGetProductResponse(&product))
+		productDatas = append(productDatas, NewGetProductResponse(product))
 	}
-	return &GetUserResponse{
+	return GetUserResponse{
 		ID:        u.ID,
 		Email:     u.Email,
 		FirstName: u.FirstName,

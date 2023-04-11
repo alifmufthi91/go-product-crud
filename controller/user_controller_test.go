@@ -44,7 +44,7 @@ func (c *UserControllerSuite) TestUserController_Login() {
 
 	// define mock user service login behavior
 	token := "test-token"
-	c.userService.On("Login", mock.Anything).Return(&token, nil).Once()
+	c.userService.On("Login", mock.Anything).Return(token, nil).Once()
 
 	// create new context
 	req, _ := http.NewRequest(http.MethodPost, "/login", nil)

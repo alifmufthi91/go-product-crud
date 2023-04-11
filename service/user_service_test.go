@@ -3,6 +3,7 @@ package service_test
 import (
 	"crypto/sha256"
 	"errors"
+	"product-crud/dto/app"
 	"product-crud/dto/request"
 	"product-crud/dto/response"
 	"product-crud/models"
@@ -60,29 +61,30 @@ func (s *UserServiceSuite) TestUserService_RegisterUser() {
 		Products:  []response.GetProductResponse{},
 	}
 
+	nullableUser := app.NewNullableStuff(user)
+
 	// expect success
 	existing := false
-	s.userRepository.On("IsExistingEmail", mock.Anything, userRequest.Email).Return(&existing, nil).Once()
-	s.userRepository.On("AddUser", mock.Anything, user).Return(&user, nil).Once()
+	s.userRepository.On("IsExistingEmail", mock.Anything, userRequest.Email).Return(existing, nil).Once()
+	s.userRepository.On("AddUser", mock.Anything, user).Return(nullableUser, nil).Once()
 	newUser, err := s.userService.Register(userRequest)
 	require.NoError(s.T(), err)
-	require.Equal(s.T(), response, *newUser)
+	require.Equal(s.T(), response, newUser)
 
 	// expect error because email is existed
 	existing = true
 	expectedErr := errors.New("email is already exist")
-	s.userRepository.On("IsExistingEmail", mock.Anything, user.Email).Return(&existing, expectedErr).Once()
+	s.userRepository.On("IsExistingEmail", mock.Anything, user.Email).Return(existing, expectedErr).Once()
 	newUser, err = s.userService.Register(userRequest)
 	require.Error(s.T(), err, expectedErr.Error())
-	require.Nil(s.T(), newUser)
 
 	// expect error because process AddUser is having problem
 	existing = false
-	var emptyUser *models.User
+	var emptyUser app.NullableStuff[models.User]
 	expectedErr = errors.New("error happen during add user")
-	s.userRepository.On("IsExistingEmail", mock.Anything, user.Email).Return(&existing, nil).Once()
+	s.userRepository.On("IsExistingEmail", mock.Anything, user.Email).Return(existing, nil).Once()
 	s.userRepository.On("AddUser", mock.Anything, user).Return(emptyUser, expectedErr).Once()
 	newUser, err = s.userService.Register(userRequest)
 	require.Error(s.T(), err, expectedErr.Error())
-	require.Nil(s.T(), newUser)
+
 }

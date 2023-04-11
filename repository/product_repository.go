@@ -11,10 +11,10 @@ import (
 )
 
 type IProductRepository interface {
-	GetAllProduct(ctx context.Context, pagination *app.Pagination, count *int64) ([]*models.Product, error)
-	GetByProductId(ctx context.Context, productId uint) (*models.Product, error)
-	AddProduct(ctx context.Context, product models.Product) (*models.Product, error)
-	UpdateProduct(ctx context.Context, product models.Product) (*models.Product, error)
+	GetAllProduct(ctx context.Context, pagination *app.Pagination, count *int64) ([]models.Product, error)
+	GetByProductId(ctx context.Context, productId uint) (app.NullableStuff[models.Product], error)
+	AddProduct(ctx context.Context, product models.Product) (app.NullableStuff[models.Product], error)
+	UpdateProduct(ctx context.Context, product models.Product) (app.NullableStuff[models.Product], error)
 	DeleteProduct(ctx context.Context, productId uint) error
 }
 
@@ -29,8 +29,8 @@ func NewProductRepository(db *gorm.DB) ProductRepository {
 	}
 }
 
-func (repo ProductRepository) GetAllProduct(ctx context.Context, pagination *app.Pagination, count *int64) ([]*models.Product, error) {
-	var products []*models.Product
+func (repo ProductRepository) GetAllProduct(ctx context.Context, pagination *app.Pagination, count *int64) ([]models.Product, error) {
+	var products []models.Product
 	offset := (pagination.Page - 1) * pagination.Limit
 	queryBuilder := repo.Joins("Uploader").Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
 	result := queryBuilder.WithContext(ctx).Find(&products).Limit(-1).Offset(-1).Count(count)
@@ -41,33 +41,39 @@ func (repo ProductRepository) GetAllProduct(ctx context.Context, pagination *app
 	return products, nil
 }
 
-func (repo ProductRepository) GetByProductId(ctx context.Context, id uint) (*models.Product, error) {
+func (repo ProductRepository) GetByProductId(ctx context.Context, id uint) (app.NullableStuff[models.Product], error) {
 	var product models.Product
+	var nullableProduct app.NullableStuff[models.Product]
 	result := repo.WithContext(ctx).Joins("Uploader").First(&product, "products.id = ?", id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			panic(errorUtil.DataNotFound("product is not found"))
+			return nullableProduct, errorUtil.DataNotFound("product is not found")
 		}
-		return nil, result.Error
+		return nullableProduct, result.Error
 	}
-
-	return &product, nil
+	nullableProduct = app.NewNullableStuff(product)
+	return nullableProduct, nil
 }
 
-func (repo ProductRepository) AddProduct(ctx context.Context, product models.Product) (*models.Product, error) {
+func (repo ProductRepository) AddProduct(ctx context.Context, product models.Product) (app.NullableStuff[models.Product], error) {
 	result := repo.WithContext(ctx).Create(&product)
+	var nullableProduct app.NullableStuff[models.Product]
 	if result.Error != nil {
-		return nil, result.Error
+		return nullableProduct, result.Error
 	}
-	return &product, nil
+	nullableProduct = app.NewNullableStuff(product)
+	return nullableProduct, nil
 }
 
-func (repo ProductRepository) UpdateProduct(ctx context.Context, product models.Product) (*models.Product, error) {
+func (repo ProductRepository) UpdateProduct(ctx context.Context, product models.Product) (app.NullableStuff[models.Product], error) {
 	result := repo.WithContext(ctx).Updates(&product)
+	var nullableProduct app.NullableStuff[models.Product]
 	if result.Error != nil {
-		return nil, result.Error
+		return nullableProduct, result.Error
 	}
-	return &product, nil
+
+	nullableProduct = app.NewNullableStuff(product)
+	return nullableProduct, nil
 }
 
 func (repo ProductRepository) DeleteProduct(ctx context.Context, productId uint) error {
